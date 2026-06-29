@@ -83,35 +83,37 @@ export default function Navbar({
           {/* Logo Brand */}
           <div 
             onClick={() => onTabChange('shop')} 
-            className="flex items-center gap-1 sm:gap-2 cursor-pointer group flex-shrink-0 select-none"
+            className="flex items-center gap-1.5 sm:gap-2.5 cursor-pointer group flex-shrink-0 select-none"
             id="nav-logo"
           >
-            <div className="relative w-9 h-9 sm:w-11 sm:h-11 flex items-center justify-center rounded-xl bg-zinc-50 border border-zinc-200 group-hover:bg-zinc-100 group-hover:scale-105 transition-all duration-300">
-              <svg viewBox="0 0 100 100" className="w-7 h-7 sm:w-9 sm:h-9" style={{ filter: "drop-shadow(0px 2px 4px rgba(0,0,0,0.15))" }}>
+            <div className="relative w-9 h-9 sm:w-11 sm:h-11 flex items-center justify-center rounded-xl bg-red-500 hover:scale-105 transition-all duration-300 shadow-md shadow-red-500/20">
+              <svg viewBox="0 0 100 100" className="w-6.5 h-6.5 sm:w-8 sm:h-8" style={{ filter: "drop-shadow(0px 1px 2px rgba(0,0,0,0.1))" }}>
                 <defs>
-                  <linearGradient id="nav-m-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stopColor="#0B2CD2" />
-                    <stop offset="50%" stopColor="#0066FF" />
-                    <stop offset="100%" stopColor="#00A2FF" />
+                  <linearGradient id="tiemxe-white-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stopColor="#ffffff" />
+                    <stop offset="100%" stopColor="#fca5a5" />
                   </linearGradient>
                 </defs>
+                {/* Elegant sports car outline in white gradient */}
                 <path
-                  d="M15 75V25H35L50 47L65 25H85V75H69V43L50 67L31 43V75H15Z"
-                  fill="url(#nav-m-gradient)"
+                  d="M15 62 L22 38 C24 33 30 30 38 30 H62 C70 30 76 33 78 38 L85 62 C88 62 90 65 90 68 V74 C90 78 87 81 83 81 H79 C76 81 74 79 74 76 V72 H26 V76 C26 79 24 81 21 81 H17 C13 81 10 78 10 74 V68 C10 65 12 62 15 62 Z M28 62 H72 L66 43 C65 40 60 38 50 38 C40 38 35 40 34 43 L28 62 Z"
+                  fill="url(#tiemxe-white-grad)"
                 />
+                <circle cx="21" cy="71" r="3.5" fill="#ef4444" />
+                <circle cx="79" cy="71" r="3.5" fill="#ef4444" />
               </svg>
             </div>
             <div className="text-left hidden min-[450px]:block leading-none">
-              <div className="flex items-baseline">
-                <span className="text-md sm:text-xl font-extrabold tracking-tight text-zinc-900 uppercase font-sans">
-                  INIAUTO
+              <div className="flex items-baseline gap-0.5">
+                <span className="text-sm sm:text-lg font-black tracking-tighter text-zinc-900 uppercase font-sans">
+                  TIỆM XE
                 </span>
-                <span className="text-xs sm:text-sm font-black text-blue-600 ml-0.5 font-mono">
-                  .store
+                <span className="text-xs sm:text-sm font-black text-red-600 font-mono uppercase tracking-tight">
+                  MÔ HÌNH
                 </span>
               </div>
-              <span className="block text-[7px] sm:text-[8px] text-zinc-400 font-bold tracking-[0.2em] mt-0.5 uppercase">
-                Mô Hình Tĩnh Cao Cấp
+              <span className="block text-[7px] sm:text-[8px] text-zinc-400 font-extrabold tracking-[0.15em] mt-0.5 uppercase">
+                Siêu Xe & Xe Cổ Tĩnh Cao Cấp
               </span>
             </div>
           </div>

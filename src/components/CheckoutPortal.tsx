@@ -27,7 +27,7 @@ const fallbackBankSettings: BankSettings = {
   bankName: 'MB BANK (Ngân hàng Quân Đội)',
   bankCodeShort: 'MB',
   accountNumber: '19035658825',
-  accountHolder: 'MO HINH XE TINH MINIAUTO STORE',
+  accountHolder: 'TIEM XE MO HINH TINH',
   momoPhone: '0919288258',
   adminEmail: 'autovibe8825@gmail.com'
 };

@@ -144,7 +144,7 @@ export default function LoyaltyHub({ currentUser, onRedeemGift }: LoyaltyHubProp
         <div>
           <h2 className="text-xl font-extrabold text-zinc-900 flex items-center gap-2 uppercase tracking-wide">
             <Crown className="w-6 h-6 text-amber-500 animate-pulse" />
-            MiniAuto.store Loyalty Club • Đặc Quyền Sưu Tầm
+            Tiệm Xe Loyalty Club • Đặc Quyền Sưu Tầm
           </h2>
           <p className="text-xs text-zinc-500 mt-1">
             Ghi nhận từng giao dịch, nâng bậc tối cao nhận ưu đãi giảm giá đến 10% hóa đơn xe hợp kim kẽm!
@@ -487,7 +487,7 @@ export default function LoyaltyHub({ currentUser, onRedeemGift }: LoyaltyHubProp
                     </div>
                   ))}
                   <p className="text-[10px] text-zinc-500 leading-relaxed text-center mt-3">
-                    *Tất cả các món quà lưu niệm vật tư bọc bệ bên trên sẽ được MiniAuto.store <b>tự động gửi tặng kèm chung hộp bưu tá đóng gói đơn tiếp theo</b> của quý khách.
+                    *Tất cả các món quà lưu niệm vật tư bọc bệ bên trên sẽ được Tiệm Xe <b>tự động gửi tặng kèm chung hộp bưu tá đóng gói đơn tiếp theo</b> của quý khách.
                   </p>
                 </div>
               )}

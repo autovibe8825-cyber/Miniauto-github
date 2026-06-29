@@ -2077,7 +2077,7 @@ export default function AdminDashboard({
             
             <div className="text-xs text-zinc-600 leading-relaxed space-y-3 font-sans font-medium">
               <p>
-                Toàn bộ dữ liệu của hệ thống <span className="text-amber-600 font-extrabold">MiniAuto.store</span> (bao gồm <strong>Danh mục sản phẩm tự tạo</strong>, <strong>Nhật ký vận đơn giao hàng</strong>, <strong>Thành viên VIP & Sổ tích điểm CRM</strong>, <strong>Danh sách Vouchers chiết khấu</strong> và <strong>Slogan chạy chữ sự kiện</strong>) hiện đang được lưu trữ an toàn và bảo mật ngay tại bộ nhớ cục bộ <code className="bg-zinc-100 px-1.5 py-0.5 rounded text-amber-700 font-mono font-bold border border-zinc-200">localStorage</code> trên Trình duyệt web của thiết bị này.
+                Toàn bộ dữ liệu của hệ thống <span className="text-amber-600 font-extrabold">Tiệm Xe</span> (bao gồm <strong>Danh mục sản phẩm tự tạo</strong>, <strong>Nhật ký vận đơn giao hàng</strong>, <strong>Thành viên VIP & Sổ tích điểm CRM</strong>, <strong>Danh sách Vouchers chiết khấu</strong> và <strong>Slogan chạy chữ sự kiện</strong>) hiện đang được lưu trữ an toàn và bảo mật ngay tại bộ nhớ cục bộ <code className="bg-zinc-100 px-1.5 py-0.5 rounded text-amber-700 font-mono font-bold border border-zinc-200">localStorage</code> trên Trình duyệt web của thiết bị này.
               </p>
               <div className="bg-amber-50/50 border border-amber-200 p-3.5 rounded-2xl flex items-start gap-2.5 text-amber-800">
                 <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />

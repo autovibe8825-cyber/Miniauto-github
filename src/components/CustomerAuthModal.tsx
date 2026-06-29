@@ -150,7 +150,7 @@ export default function CustomerAuthModal({
           <div className="flex items-center gap-2">
             <ShieldCheck className="w-5.5 h-5.5 text-red-600 animate-pulse" />
             <h3 className="text-sm font-black text-zinc-900 tracking-wider uppercase font-display">
-              Thành Viên MiniAuto.store
+              Thành Viên Tiệm Xe
             </h3>
           </div>
           <button 

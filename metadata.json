@@ -1,5 +1,5 @@
 {
-  "name": "Cửa Hàng Mô Hình Ô Tô",
+  "name": "Tiệm Xe - Mô Hình Ô Tô Cao Cấp",
   "description": "Trang web bán hàng mô hình ô tô tích hợp thanh toán trực tuyến ví điện tử, quản lý kho hàng tự động và theo dõi đơn hàng thời gian thực.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]

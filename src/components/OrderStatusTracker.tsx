@@ -136,7 +136,7 @@ export default function OrderStatusTracker({
   // Generate simulated dispatching history logs as time moves
   const getSimulatedLogs = (progress: number, status: OrderStatus) => {
     const logs = [];
-    logs.push({ icon: '🛒', text: 'Đơn hàng được khởi tạo trên cổng MiniAuto.store', time: '10:15' });
+    logs.push({ icon: '🛒', text: 'Đơn hàng được khởi tạo trên hệ thống Tiệm Xe', time: '10:15' });
     
     if (progress >= 5 || status !== 'pending_payment') {
       logs.push({ icon: '💳', text: 'Nhận tín hiệu giao dịch ví điện tử thành công - Chốt khóa kho tự động', time: '10:16' });

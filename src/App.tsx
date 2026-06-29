@@ -81,7 +81,7 @@ export default function App() {
     }
     return {
       id: 'user-001',
-      email: 'miniauto.store@gmail.com',
+      email: 'tiemxemohinh@gmail.com',
       fullName: 'Nhà Sưu Tầm Đẳng Cấp',
       phone: '0912345678',
       address: '72 Nguyễn Trãi, Thanh Xuân, Hà Nội',
@@ -90,7 +90,7 @@ export default function App() {
       lifetimePoints: 350,
       redeemedGifts: [],
       vouchers: [
-        { id: 'vch-hello-50k', name: 'Voucher Chào Mừng Lính Mới', amount: 50000, code: 'HELLOMINIAUTO50K' }
+        { id: 'vch-hello-50k', name: 'Voucher Chào Mừng Lính Mới', amount: 50000, code: 'HELLOTIEMXE50K' }
       ],
       viewHistory: ['prod-004']
     };
@@ -135,7 +135,7 @@ export default function App() {
       {
         id: 'NF-init01',
         title: 'Hệ thống kích hoạt',
-        message: 'Tổng phân kho MiniAuto.store đã kết nối thành công. Đang đứng lớp sẵn sàng nhận đơn đặt hàng mô hình.',
+        message: 'Tổng phân kho Tiệm Xe Mô Hình đã kết nối thành công. Đang đứng lớp sẵn sàng nhận đơn đặt hàng mô hình.',
         time: 'Hôm nay',
         orderId: '',
         read: false
@@ -633,7 +633,7 @@ export default function App() {
     playSuccessClick();
     setCurrentUser({
       id: 'user-001',
-      email: 'miniauto.store@gmail.com',
+      email: 'tiemxemohinh@gmail.com',
       fullName: 'Nhà Sưu Tầm Đẳng Cấp',
       phone: '0912345678',
       address: '72 Nguyễn Trãi, Thanh Xuân, Hà Nội',
@@ -642,7 +642,7 @@ export default function App() {
       lifetimePoints: 350,
       redeemedGifts: [],
       vouchers: [
-        { id: 'vch-hello-50k', name: 'Voucher Chào Mừng Lính Mới', amount: 50000, code: 'HELLOMINIAUTO50K' }
+        { id: 'vch-hello-50k', name: 'Voucher Chào Mừng Lính Mới', amount: 50000, code: 'HELLOTIEMXE50K' }
       ],
       viewHistory: []
     });
@@ -918,8 +918,8 @@ export default function App() {
     const emailBodyHtml = `
       <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #3f3f46; border-radius: 16px; background-color: #18181b; color: #f4f4f5;">
         <div style="text-align: center; border-bottom: 2px solid #ef4444; padding-bottom: 15px;">
-          <h1 style="color: #ef4444; margin: 0; font-size: 22px; font-weight: 900; letter-spacing: -0.5px;">🏎️ MINIAUTO.STORE NEW ORDER</h1>
-          <p style="margin: 5px 0 0; font-size: 11px; color: #a1a1aa; font-weight: bold; text-transform: uppercase; letter-spacing: 1px;">MÁY CHỦ BÁO ĐƠN TỰ ĐỘNG (REALTIME BACKEND DIRECT)</p>
+          <h1 style="color: #ef4444; margin: 0; font-size: 22px; font-weight: 900; letter-spacing: -0.5px;">🏎️ TIEMXE.MOHINH NEW ORDER</h1>
+          <p style="margin: 5px 0 0; font-size: 11px; color: #a1a1aa; font-weight: bold; text-transform: uppercase; letter-spacing: 1px;">MÁY CHỦ BÁO ĐƠN TỰ ĐỘNG (TIỆM XE REALTIME)</p>
         </div>
         
         <div style="padding: 20px 0; font-size: 13px; line-height: 1.6;">
@@ -974,7 +974,7 @@ export default function App() {
     const automaticMailLog = {
       id: 'EM-' + Math.floor(100000 + Math.random() * 900000),
       recipient: bankSettings.adminEmail,
-      subject: `🚨 [MiniAuto.store-Realtime] Có Đơn Hàng Mới Chốt Thành Công - Mã Vận Đơn #${uniqueOrderId}`,
+      subject: `🚨 [Tiệm Xe-Realtime] Có Đơn Hàng Mới Chốt Thành Công - Mã Vận Đơn #${uniqueOrderId}`,
       sentAt: new Date().toLocaleTimeString('vi-VN') + ' - ' + new Date().toLocaleDateString('vi-VN'),
       status: 'DELIVERED',
       bodyHtml: emailBodyHtml,
@@ -1474,7 +1474,7 @@ export default function App() {
                   <div>
                     <h3 className="text-xs font-black text-amber-600 uppercase tracking-widest flex items-center gap-1.5">
                       <Sparkles className="w-3.5 h-3.5 text-amber-500 animate-pulse" />
-                      Chương trình Khuyến mãi từ MiniAuto
+                      Chương trình Khuyến mãi từ Tiệm Xe
                     </h3>
                     <p className="text-[10px] sm:text-[11px] text-zinc-650 mt-0.5">Bấm lưu mã nhận ngay ưu đãi khấu trừ trực tiếp khi thanh toán đơn hàng.</p>
                   </div>
@@ -1709,7 +1709,7 @@ export default function App() {
       <footer className="relative z-10 mt-6 py-8 border-t border-white/10 text-xs text-zinc-400 backdrop-blur-md bg-white/1">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="text-left">
-            <p className="font-extrabold text-zinc-200 tracking-tight">© 2026 MINIAUTO.STORE</p>
+            <p className="font-extrabold text-zinc-200 tracking-tight">© 2026 TIỆM XE MÔ HÌNH</p>
             <p className="text-[10px] text-zinc-500 mt-1">Trang web bán hàng mô hình ô tô tích hợp thanh toán trực tuyến & quản trị tối ưu.</p>
           </div>
           <div className="flex gap-4 text-[11px] text-zinc-400">
