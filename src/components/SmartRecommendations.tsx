@@ -223,7 +223,7 @@ export default function SmartRecommendations({
                 <div className="flex flex-col text-left">
                   <span className="text-[8px] text-zinc-400 uppercase font-black tracking-wider leading-none">Ưu đãi độc quyền</span>
                   <span className="text-sm font-bold text-red-600 font-mono mt-1 whitespace-nowrap shrink-0">
-                    {p.price.toLocaleString('vi-VN')}&nbsp;đ
+                    {(p.price || 0).toLocaleString('vi-VN')}&nbsp;đ
                   </span>
                 </div>
                 <button
@@ -271,7 +271,7 @@ export default function SmartRecommendations({
                 </div>
                 <h5 className="text-xs font-bold text-zinc-805 line-clamp-1 tracking-tight group-hover:text-red-600 transition-colors mt-0.5">{p.name}</h5>
                 <p className="text-[11px] font-bold text-red-600 font-mono mt-0.5 whitespace-nowrap shrink-0">
-                  {p.price.toLocaleString('vi-VN')}&nbsp;đ
+                  {(p.price || 0).toLocaleString('vi-VN')}&nbsp;đ
                 </p>
               </div>
             </div>
@@ -307,7 +307,7 @@ export default function SmartRecommendations({
               <div className="min-w-0">
                 <h5 className="text-[10.5px] font-bold text-zinc-800 truncate pr-1">{p.name}</h5>
                 <p className="text-[9.5px] font-extrabold text-red-600 font-mono mt-0.5 whitespace-nowrap shrink-0">
-                  {p.price.toLocaleString('vi-VN')}&nbsp;đ • <span className="text-zinc-500 font-normal">Tỉ lệ {p.scale}</span>
+                  {(p.price || 0).toLocaleString('vi-VN')}&nbsp;đ • <span className="text-zinc-500 font-normal">Tỉ lệ {p.scale}</span>
                 </p>
               </div>
             </div>

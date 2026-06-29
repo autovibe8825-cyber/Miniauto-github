@@ -70,17 +70,29 @@ export default function ProductCard({
     }
   };
 
-  const hasDiscount = !!product.discountPercentage && product.discountPercentage > 0;
+  const productPrice = Number(product.price) || 0;
+  const hasDiscount = !!product.discountPercentage && Number(product.discountPercentage) > 0;
   const discountedPrice = hasDiscount 
-    ? Math.floor(product.price * (1 - product.discountPercentage! / 100))
-    : product.price;
+    ? Math.floor(productPrice * (1 - Number(product.discountPercentage)! / 100))
+    : productPrice;
 
-  const formattedPrice = discountedPrice.toLocaleString('vi-VN') + '\u00a0đ';
-  const formattedOriginalPrice = product.price.toLocaleString('vi-VN') + '\u00a0đ';
+  const formattedPrice = (discountedPrice || 0).toLocaleString('vi-VN') + '\u00a0đ';
+  const formattedOriginalPrice = (productPrice || 0).toLocaleString('vi-VN') + '\u00a0đ';
 
-  // Determine which image to show based on hover and gallery availability
-  const hasGallery = product.galleryImages && product.galleryImages.length > 0;
-  const activeImage = (isHovered && hasGallery) ? product.galleryImages![0] : product.imageUrl;
+  // Determine which image to show based on hover and gallery availability safely
+  const getGalleryArray = (val: any): string[] => {
+    if (Array.isArray(val)) return val;
+    if (typeof val === 'string') {
+      try {
+        const parsed = JSON.parse(val);
+        if (Array.isArray(parsed)) return parsed;
+      } catch {}
+    }
+    return [];
+  };
+  const galleryImagesArray = getGalleryArray(product.galleryImages);
+  const hasGallery = galleryImagesArray.length > 0;
+  const activeImage = (isHovered && hasGallery) ? galleryImagesArray[0] : product.imageUrl;
   
   return (
     <div 

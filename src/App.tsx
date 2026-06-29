@@ -472,7 +472,14 @@ export default function App() {
 
   // Synchronise current client user stats if they match a customer in our loyalty DB
   useEffect(() => {
-    const matched = customers.find(c => c.phone.replace(/\s+/g, '') === currentUser.phone.replace(/\s+/g, ''));
+    const userPhoneClean = (currentUser?.phone || '').replace(/\s+/g, '');
+    if (!userPhoneClean) return;
+
+    const matched = customers.find(c => {
+      const cPhoneClean = (c?.phone || '').replace(/\s+/g, '');
+      return cPhoneClean && cPhoneClean === userPhoneClean;
+    });
+
     if (matched) {
       if (currentUser.loyaltyPoints !== matched.loyaltyPoints || currentUser.lifetimePoints !== matched.lifetimePoints || currentUser.fullName !== matched.name || currentUser.address !== matched.address) {
         setCurrentUser(prev => ({
@@ -486,13 +493,12 @@ export default function App() {
     } else {
       // Auto register current user into the loyalty CRM database if they do not exist matches
       setCustomers(prev => {
-        const phoneClean = currentUser.phone.replace(/\s+/g, '');
-        if (!prev.find(c => c.phone.replace(/\s+/g, '') === phoneClean)) {
+        if (!prev.find(c => (c?.phone || '').replace(/\s+/g, '') === userPhoneClean)) {
           return [
             ...prev,
             {
-              phone: currentUser.phone,
-              name: currentUser.fullName,
+              phone: currentUser.phone || '',
+              name: currentUser.fullName || 'Người dùng mới',
               address: currentUser.address || '',
               loyaltyPoints: currentUser.loyaltyPoints ?? 350,
               lifetimePoints: currentUser.lifetimePoints ?? 350,
@@ -503,7 +509,7 @@ export default function App() {
         return prev;
       });
     }
-  }, [currentUser.phone, customers]);
+  }, [currentUser?.phone, customers]);
 
   // Check URL query parameters to auto-open shared product
   useEffect(() => {

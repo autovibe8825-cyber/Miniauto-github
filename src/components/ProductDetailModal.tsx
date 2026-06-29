@@ -4,6 +4,17 @@ import { X, Star, Calendar, RefreshCw, Layers, Sparkles, MessageCircle, Shopping
 import SmartRecommendations from './SmartRecommendations';
 import { getSharedAudioContext } from '../utils/audio';
 
+const ensureArray = (val: any): any[] => {
+  if (Array.isArray(val)) return val;
+  if (typeof val === 'string') {
+    try {
+      const parsed = JSON.parse(val);
+      if (Array.isArray(parsed)) return parsed;
+    } catch {}
+  }
+  return [];
+};
+
 const getGalleryImages = (p: Product): string[] => {
   // Category-specific rich cinematic detailed fallback images
   const supercarFallbacks = [
@@ -49,7 +60,7 @@ const getGalleryImages = (p: Product): string[] => {
   else if (p.category === 'jdm') chosenFallbacks = jdmFallbacks;
   else if (p.category === 'classic') chosenFallbacks = classicFallbacks;
 
-  const list = p.galleryImages || [];
+  const list = ensureArray(p.galleryImages);
   const result = [...list];
   while (result.length < 9) {
     result.push(chosenFallbacks[result.length % chosenFallbacks.length]);
@@ -364,13 +375,14 @@ export default function ProductDetailModal({
   };
 
   const isOutOfStock = product.stock === 0;
-  const hasDiscount = !!product.discountPercentage && product.discountPercentage > 0;
+  const productPrice = Number(product.price) || 0;
+  const hasDiscount = !!product.discountPercentage && Number(product.discountPercentage) > 0;
   const discountedPrice = hasDiscount 
-    ? Math.floor(product.price * (1 - product.discountPercentage! / 100))
-    : product.price;
+    ? Math.floor(productPrice * (1 - Number(product.discountPercentage)! / 100))
+    : productPrice;
 
-  const formattedPrice = discountedPrice.toLocaleString('vi-VN') + '\u00a0đ';
-  const formattedOriginalPrice = product.price.toLocaleString('vi-VN') + '\u00a0đ';
+  const formattedPrice = (discountedPrice || 0).toLocaleString('vi-VN') + '\u00a0đ';
+  const formattedOriginalPrice = (productPrice || 0).toLocaleString('vi-VN') + '\u00a0đ';
 
   const getScaleInCm = (s: string) => {
     if (s.includes('1:18')) return 26;
@@ -745,7 +757,7 @@ export default function ProductDetailModal({
                     <Sparkles className="w-4 h-4 text-amber-500" /> Đặc điểm và Cơ chế hoạt động
                   </h4>
                   <ul className="space-y-1.5 text-xs text-zinc-650">
-                    {product.features.map((feature, idx) => (
+                    {ensureArray(product.features).map((feature, idx) => (
                       <li key={idx} className="flex items-start gap-2">
                         <span className="text-red-500 mt-0.5 select-none">✔</span>
                         <span>{feature}</span>
