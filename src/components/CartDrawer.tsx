@@ -42,6 +42,24 @@ export default function CartDrawer({
     0
   );
 
+  const originalSubtotal = cartItems.reduce(
+    (sum, item) => sum + (item && item.product ? (item.product.price || 0) : 0) * (item?.quantity || 0),
+    0
+  );
+
+  const totalDiscount = cartItems.reduce(
+    (sum, item) => {
+      if (!item || !item.product) return sum;
+      const original = item.product.price || 0;
+      const actual = getItemPrice(item.product);
+      return sum + (original - actual) * item.quantity;
+    },
+    0
+  );
+
+  const shippingFee = totalAmount >= 1000000 ? 0 : 30000;
+  const grandTotal = totalAmount + (totalAmount > 0 ? shippingFee : 0);
+
   return (
     <div 
       className="fixed inset-0 z-50 overflow-hidden animate-fade-in" 
@@ -86,11 +104,37 @@ export default function CartDrawer({
                 </button>
               </div>
             ) : (
-              cartItems.map((item) => {
-                if (!item || !item.product) return null;
-                const limitReached = item.quantity >= (item.product.stock || 0);
+              <>
+                {/* Dynamic Free Shipping Progress Tracker */}
+                <div className="bg-red-50/60 border border-red-100 rounded-2xl p-3 sm:p-3.5 mb-3 shadow-xs select-none" id="shipping-progress">
+                  <div className="flex justify-between text-[11px] sm:text-xs font-bold text-zinc-700 mb-2 flex-wrap gap-1">
+                    <span className="flex items-center gap-1 text-zinc-800">
+                      <span>🚚</span> 
+                      {totalAmount >= 1000000 ? (
+                        <span className="text-emerald-600 font-extrabold">Đã đủ điều kiện miễn phí vận chuyển!</span>
+                      ) : (
+                        <span>
+                          Mua thêm <strong className="text-red-600 font-mono">{(1000000 - totalAmount).toLocaleString('vi-VN')}đ</strong> để freeship
+                        </span>
+                      )}
+                    </span>
+                    <span className="text-[10px] text-zinc-400 font-mono">
+                      {Math.min(100, Math.round((totalAmount / 1000000) * 100))}%
+                    </span>
+                  </div>
+                  <div className="w-full h-1.5 bg-zinc-200/80 rounded-full overflow-hidden">
+                    <div 
+                      className="h-full bg-gradient-to-r from-red-500 to-red-600 transition-all duration-550 ease-out rounded-full" 
+                      style={{ width: `${Math.min(100, (totalAmount / 1000000) * 100)}%` }}
+                    />
+                  </div>
+                </div>
 
-                return (
+                {cartItems.map((item) => {
+                  if (!item || !item.product) return null;
+                  const limitReached = item.quantity >= (item.product.stock || 0);
+
+                  return (
                   <div 
                     key={item.product.id}
                     className="bg-zinc-55/40 sm:bg-zinc-50 border border-zinc-200 rounded-2xl p-2.5 sm:p-3 flex gap-2.5 sm:gap-3 relative group text-left shadow-sm"
@@ -180,7 +224,8 @@ export default function CartDrawer({
                     </button>
                   </div>
                 );
-              })
+                })}
+              </>
             )}
 
             {/* Smart behavioral recommendations drawer footer listing */}
@@ -200,14 +245,38 @@ export default function CartDrawer({
 
           {/* Checkout panel section footer */}
           {!isCartEmpty && (
-            <div className="border-t border-zinc-200 bg-white/95 p-4 sm:p-5 space-y-4 sticky bottom-0 shrink-0 z-25 backdrop-blur-lg pb-safe shadow-[0_-8px_30px_rgb(0,0,0,0.04)]">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-[10px] text-zinc-500 uppercase font-black tracking-widest">TỔNG THANH TOÁN:</p>
-                  <p className="text-[9px] text-zinc-400 mt-0.5">Kho tự động kiểm tra nạp đơn</p>
+            <div className="border-t border-zinc-200 bg-white/95 p-4 sm:p-5 space-y-3.5 sticky bottom-0 shrink-0 z-25 backdrop-blur-lg pb-safe shadow-[0_-8px_30px_rgb(0,0,0,0.04)]">
+              {/* Detailed Real-Time Subtotal Breakdown */}
+              <div className="space-y-1.5 text-xs border-b border-zinc-150 pb-3" id="cart-subtotal-breakdown">
+                <div className="flex justify-between text-zinc-500 font-medium">
+                  <span>Tạm tính (giá gốc):</span>
+                  <span className="font-mono font-bold text-zinc-700">{originalSubtotal.toLocaleString('vi-VN')}&nbsp;đ</span>
                 </div>
-                <span className="text-lg sm:text-xl font-black text-red-600 font-mono whitespace-nowrap shrink-0">
-                  {totalAmount.toLocaleString('vi-VN')}&nbsp;đ
+                {totalDiscount > 0 && (
+                  <div className="flex justify-between text-emerald-600 font-semibold bg-emerald-50/50 px-2 py-1 rounded-lg">
+                    <span>Tiết kiệm giảm giá:</span>
+                    <span className="font-mono">-{totalDiscount.toLocaleString('vi-VN')}&nbsp;đ</span>
+                  </div>
+                )}
+                <div className="flex justify-between text-zinc-500 font-medium">
+                  <span>Phí giao hàng:</span>
+                  <span className="font-mono font-bold text-zinc-700">
+                    {shippingFee === 0 ? (
+                      <span className="text-emerald-600 font-extrabold uppercase text-[10px]">Miễn phí</span>
+                    ) : (
+                      `${shippingFee.toLocaleString('vi-VN')} đ`
+                    )}
+                  </span>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between pt-1">
+                <div>
+                  <p className="text-[10px] text-zinc-500 uppercase font-black tracking-widest">TỔNG CỘNG:</p>
+                  <p className="text-[9px] text-zinc-400 mt-0.5">Thời gian thực khi sửa số lượng</p>
+                </div>
+                <span className="text-xl sm:text-2xl font-black text-red-650 font-mono tracking-tight whitespace-nowrap shrink-0">
+                  {grandTotal.toLocaleString('vi-VN')}&nbsp;đ
                 </span>
               </div>
 
