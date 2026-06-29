@@ -181,6 +181,81 @@ export default function App() {
     });
   }, []);
 
+  // Real-time server-sent events for multi-browser live sync (Supabase/PostgreSQL backends connection)
+  useEffect(() => {
+    let active = true;
+    let eventSource: EventSource | null = null;
+    let reconnectTimeout: any = null;
+
+    function connect() {
+      if (!active) return;
+      console.log("%c[SSE] Kết nối tới kênh đồng bộ hóa real-time (Supabase)...", "color: #ef4444; font-weight: bold;");
+      
+      eventSource = new EventSource('/api/db/live-events');
+
+      eventSource.onmessage = (event) => {
+        try {
+          const payload = JSON.parse(event.data);
+          if (!payload || !payload.type) return;
+
+          console.log(`[SSE EVENT] Nhận sự kiện: ${payload.type}`, payload.data);
+
+          if (payload.type === 'notification:created') {
+            const notif = payload.data;
+            setAdminNotifications(prev => {
+              if (prev.some(n => n.id === notif.id)) return prev;
+              
+              // Trigger audio notice
+              try {
+                playChimeSound();
+              } catch (e) {
+                console.warn('Could not play chime sound:', e);
+              }
+
+              // Show Admin Toast
+              setAdminToast(notif);
+              return [notif, ...prev];
+            });
+          } else if (payload.type === 'order:created') {
+            const newOrder = payload.data;
+            setOrders(prev => {
+              if (prev.some(o => o.id === newOrder.id)) return prev;
+              return [newOrder, ...prev];
+            });
+          } else if (payload.type === 'order:updated') {
+            const updatedOrder = payload.data;
+            setOrders(prev => {
+              return prev.map(o => o.id === updatedOrder.id ? updatedOrder : o);
+            });
+          }
+        } catch (err) {
+          console.error('[SSE] Error handling event message:', err);
+        }
+      };
+
+      eventSource.onerror = (err) => {
+        console.warn('[SSE] Mất kết nối tới máy chủ. Đang thử kết nối lại sau 5 giây...');
+        if (eventSource) {
+          eventSource.close();
+          eventSource = null;
+        }
+        reconnectTimeout = setTimeout(connect, 5000);
+      };
+    }
+
+    connect();
+
+    return () => {
+      active = false;
+      if (eventSource) {
+        eventSource.close();
+      }
+      if (reconnectTimeout) {
+        clearTimeout(reconnectTimeout);
+      }
+    };
+  }, []);
+
   // CRM customer database state
   const [customers, setCustomers] = useState<{
     phone: string;

@@ -164,6 +164,46 @@ async function startServer() {
   }
   app.use("/uploads", express.static(uploadsDir));
 
+  // REAL-TIME NOTIFICATIONS VIA SERVER-SENT EVENTS (SSE)
+  interface SseClient {
+    id: string;
+    res: any;
+  }
+  let sseClients: SseClient[] = [];
+
+  const broadcastEvent = (type: string, data: any) => {
+    const payload = JSON.stringify({ type, data });
+    sseClients.forEach(client => {
+      try {
+        client.res.write(`data: ${payload}\n\n`);
+      } catch (err) {
+        console.error(`[SSE Broadcast Error] Failed to write to client ${client.id}:`, err);
+      }
+    });
+  };
+
+  // Endpoint for Live Events
+  app.get("/api/db/live-events", (req, res) => {
+    res.setHeader("Content-Type", "text/event-stream");
+    res.setHeader("Cache-Control", "no-cache");
+    res.setHeader("Connection", "keep-alive");
+    res.flushHeaders(); // Tell client to expect events
+
+    const clientId = Date.now().toString() + "-" + Math.random().toString(36).substring(2, 6);
+    const newClient = { id: clientId, res };
+    sseClients.push(newClient);
+
+    console.log(`[SSE CLIENT CONNECTED] Client ID: ${clientId}. Total connected clients: ${sseClients.length}`);
+
+    // Send a keep-alive/welcome signal
+    res.write(`data: ${JSON.stringify({ type: "connected", clientId })}\n\n`);
+
+    req.on("close", () => {
+      sseClients = sseClients.filter(c => c.id !== clientId);
+      console.log(`[SSE CLIENT DISCONNECTED] Client ID: ${clientId}. Total connected clients: ${sseClients.length}`);
+    });
+  });
+
   // Seed PostgreSQL database with initial data
   await dbHelpers.seedInitialData();
 
@@ -595,6 +635,9 @@ async function startServer() {
         console.warn(`[SMTP WARNING] Không thể xác định địa chỉ email của khách hàng cho đơn hàng #${order.id}. Bỏ qua bước gửi email.`);
       }
 
+      // Broadcast order:created to all SSE clients in real-time
+      broadcastEvent("order:created", order);
+
       res.json({ success: true, order });
     } catch (error: any) {
       res.status(500).json({ success: false, error: error.message });
@@ -604,6 +647,10 @@ async function startServer() {
   app.put("/api/db/orders/:id", async (req, res) => {
     try {
       const order = await dbHelpers.updateOrder(req.params.id, req.body);
+      
+      // Broadcast order:updated to all SSE clients in real-time
+      broadcastEvent("order:updated", order);
+
       res.json({ success: true, order });
     } catch (error: any) {
       res.status(500).json({ success: false, error: error.message });
@@ -642,6 +689,10 @@ async function startServer() {
   app.post("/api/db/notifications", async (req, res) => {
     try {
       const notification = await dbHelpers.createNotification(req.body);
+
+      // Broadcast notification:created to all SSE clients in real-time
+      broadcastEvent("notification:created", notification);
+
       res.json({ success: true, notification });
     } catch (error: any) {
       res.status(500).json({ success: false, error: error.message });
