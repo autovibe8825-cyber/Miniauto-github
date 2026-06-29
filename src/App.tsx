@@ -14,6 +14,7 @@ import CustomerAuthModal from './components/CustomerAuthModal';
 import { Sparkles, Trophy, ShieldAlert, ShieldCheck, BadgeCheck, Clock, Bookmark, Heart, Send, Bell, BellRing, Volume2, X, RefreshCw, ChevronRight, Flame, Check, Zap, Eye, EyeOff, Lock, Mail } from 'lucide-react';
 import { playChimeSound, playSuccessClick } from './utils/audio';
 import { motion, AnimatePresence } from 'motion/react';
+import { getCartAndMigrate, saveCartToIndexedDB } from './utils/cartIndexedDB';
 
 export default function App() {
   // 1. Data states persistent loads database
@@ -96,17 +97,8 @@ export default function App() {
     };
   });
 
-  const [cart, setCart] = useState<CartItem[]>(() => {
-    const saved = localStorage.getItem('miniauto_cart');
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch (e) {
-        console.error('Failed to parse cart', e);
-      }
-    }
-    return [];
-  });
+  const [cart, setCart] = useState<CartItem[]>([]);
+  const hasLoadedCartRef = useRef(false);
 
   // Wishlist: array of product IDs
   const [wishlist, setWishlist] = useState<string[]>(() => {
@@ -173,6 +165,21 @@ export default function App() {
       return () => clearTimeout(timer);
     }
   }, [globalToast]);
+
+  useEffect(() => {
+    getCartAndMigrate().then((savedCart) => {
+      if (savedCart && savedCart.length > 0) {
+        setCart(savedCart);
+      }
+      // Use setTimeout to ensure any initial state settlement has completed before enabling saves
+      setTimeout(() => {
+        hasLoadedCartRef.current = true;
+      }, 50);
+    }).catch((err) => {
+      console.error('Failed to load cart from IndexedDB', err);
+      hasLoadedCartRef.current = true;
+    });
+  }, []);
 
   // CRM customer database state
   const [customers, setCustomers] = useState<{
@@ -497,7 +504,9 @@ export default function App() {
   }, [currentUser]);
 
   useEffect(() => {
-    localStorage.setItem('miniauto_cart', JSON.stringify(cart));
+    if (hasLoadedCartRef.current) {
+      saveCartToIndexedDB(cart);
+    }
   }, [cart]);
 
   useEffect(() => {
