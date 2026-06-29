@@ -331,7 +331,57 @@ export default function App() {
       .then(data => {
         console.log(`[DB DIAGNOSTIC SUCCESS] Tải thành công sản phẩm! Số lượng: ${data.products?.length || 0}`, data);
         if (data.success && data.products && data.products.length > 0) {
-          setProducts(data.products);
+          const dbProds: Product[] = data.products;
+          
+          // Read from localStorage to check if there are any products created in this browser
+          // that failed to sync to the server previously (e.g. before the upload limit was increased)
+          const savedLocal = localStorage.getItem('miniauto_products');
+          let localProds: Product[] = [];
+          if (savedLocal) {
+            try {
+              localProds = JSON.parse(savedLocal);
+            } catch (err) {
+              console.error('Failed to parse local products for recovery sync:', err);
+            }
+          }
+
+          // Filter out products in local storage that do not exist in the database (unsynced ones)
+          const unsyncedProds = localProds.filter(lp => !dbProds.some(dp => dp.id === lp.id));
+
+          if (unsyncedProds.length > 0) {
+            console.log(`%c[DB SYNC RECOVERY] Phát hiện ${unsyncedProds.length} sản phẩm chưa được lưu trên Server. Đang tự động tải lên database...`, "color: #10b981; font-weight: bold;");
+            
+            unsyncedProds.forEach(up => {
+              fetch('/api/db/products', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(up)
+              })
+              .then(res => res.json())
+              .then(resData => {
+                if (resData.success) {
+                  console.log(`[DB SYNC SUCCESS] Đã đồng bộ thành công sản phẩm: ${up.name} (${up.id})`);
+                } else {
+                  console.error(`[DB SYNC ERROR] Không thể đồng bộ sản phẩm ${up.id}:`, resData.error);
+                }
+              })
+              .catch(err => {
+                console.error(`[DB SYNC NET ERROR] Lỗi mạng đồng bộ sản phẩm ${up.id}:`, err);
+              });
+            });
+
+            // Combine both sets so the user doesn't lose anything on the UI instantly
+            const combined = [...localProds];
+            dbProds.forEach(dp => {
+              if (!combined.some(cp => cp.id === dp.id)) {
+                combined.push(dp);
+              }
+            });
+            setProducts(combined);
+          } else {
+            // Standard flow: use the fresh database products
+            setProducts(dbProds);
+          }
         } else {
           console.warn("[DB DIAGNOSTIC WARNING] Không có sản phẩm nào được trả về từ cơ sở dữ liệu.");
         }
@@ -1125,7 +1175,17 @@ export default function App() {
 
   // Add customized products (Admin)
   const handleAdminAddProduct = (newProductDetails: Omit<Product, 'id'>) => {
-    const id = 'prod-' + (products.length + 1).toString().padStart(3, '0');
+    // Generate next sequential ID safely based on maximum existing numeric suffix to avoid duplicate keys in database
+    const numericIds = products
+      .map(p => {
+        const match = p.id.match(/^prod-(\d+)$/);
+        return match ? parseInt(match[1], 10) : 0;
+      })
+      .filter(n => !isNaN(n));
+    const maxIdSuffix = numericIds.length > 0 ? Math.max(...numericIds) : 20;
+    const nextSuffix = (maxIdSuffix + 1).toString().padStart(3, '0');
+    const id = `prod-${nextSuffix}`;
+
     const newProduct: Product = {
       ...newProductDetails,
       id
