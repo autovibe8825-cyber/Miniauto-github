@@ -17,6 +17,21 @@ import { playChimeSound, playSuccessClick } from './utils/audio';
 import { motion, AnimatePresence } from 'motion/react';
 import { getCartAndMigrate, saveCartToIndexedDB } from './utils/cartIndexedDB';
 
+// Helper to generate clean, friendly URL slug from product name
+export function slugify(text: string): string {
+  if (!text) return '';
+  return text
+    .toString()
+    .toLowerCase()
+    .normalize('NFD') // separate accents from base letters
+    .replace(/[\u0300-\u036f]/g, '') // remove accent marks
+    .replace(/[đĐ]/g, 'd')
+    .replace(/[^a-z0-9 -]/g, '') // remove invalid characters
+    .trim()
+    .replace(/\s+/g, '-') // collapse whitespace and replace with -
+    .replace(/-+/g, '-'); // collapse multiple dashes
+}
+
 export default function App() {
   // 1. Data states persistent loads database
   const [products, setProducts] = useState<Product[]>(() => {
@@ -398,6 +413,85 @@ export default function App() {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [showCart, setShowCart] = useState(false);
   const [showCheckout, setShowCheckout] = useState(false);
+
+  // Real-time URL Routing Engine for deep-linking & syncing address bar path
+  const [pendingProductId, setPendingProductId] = useState<string | null>(null);
+
+  const parseAndSetRoute = (path: string) => {
+    const cleanPath = path.replace(/\/+$/, '') || '/';
+    
+    if (cleanPath === '/' || cleanPath === '/shop') {
+      setActiveTab('shop');
+      setSelectedCategory('all');
+      setSelectedProduct(null);
+    } else if (cleanPath === '/admin') {
+      setActiveTab('admin');
+    } else if (cleanPath === '/tra-cuu') {
+      setActiveTab('tracking');
+    } else if (cleanPath === '/tich-diem') {
+      setActiveTab('loyalty');
+    } else if (cleanPath.startsWith('/danh-muc/')) {
+      const category = cleanPath.substring('/danh-muc/'.length);
+      setActiveTab('shop');
+      setSelectedCategory(category);
+      setSelectedProduct(null);
+    } else if (cleanPath.startsWith('/san-pham/')) {
+      const prodIdOrSlug = cleanPath.substring('/san-pham/'.length);
+      setActiveTab('shop');
+      setPendingProductId(prodIdOrSlug);
+    }
+  };
+
+  // 1. Initial Route Parsing on Mount
+  useEffect(() => {
+    parseAndSetRoute(window.location.pathname);
+  }, []);
+
+  // 2. Sync State modifications into Browser Address Bar URL
+  useEffect(() => {
+    let path = '/';
+    if (activeTab === 'admin') {
+      path = '/admin';
+    } else if (activeTab === 'tracking') {
+      path = '/tra-cuu';
+    } else if (activeTab === 'loyalty') {
+      path = '/tich-diem';
+    } else if (activeTab === 'shop') {
+      if (selectedProduct) {
+        path = `/san-pham/${slugify(selectedProduct.name)}`;
+      } else if (selectedCategory && selectedCategory !== 'all') {
+        path = `/danh-muc/${selectedCategory}`;
+      }
+    }
+
+    if (window.location.pathname !== path) {
+      window.history.pushState({ activeTab, selectedCategory, selectedProductId: selectedProduct?.id }, '', path);
+    }
+  }, [activeTab, selectedCategory, selectedProduct]);
+
+  // 3. Resolve deep-linked pending products when database items load
+  useEffect(() => {
+    if (products.length > 0 && pendingProductId) {
+      const found = products.find(
+        (p) => p.id === pendingProductId || slugify(p.name) === pendingProductId
+      );
+      if (found) {
+        setSelectedProduct(found);
+      }
+      setPendingProductId(null);
+    }
+  }, [products, pendingProductId]);
+
+  // 4. Handle Browser Back & Forward PopState clicks
+  useEffect(() => {
+    const handlePopState = () => {
+      parseAndSetRoute(window.location.pathname);
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, [products]);
 
   // Load initial data from PostgreSQL/Supabase database on mount
   useEffect(() => {
