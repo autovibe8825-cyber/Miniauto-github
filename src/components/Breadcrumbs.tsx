@@ -46,14 +46,6 @@ export default function Breadcrumbs({
     icon?: React.ReactNode;
   }> = [];
 
-  // Always start with Home (Trang chủ)
-  items.push({
-    label: 'Trang chủ',
-    icon: <Home className="w-3.5 h-3.5 mr-1" />,
-    onClick: () => onNavigate('shop', 'all', true, true),
-    active: activeTab === 'shop' && selectedCategory === 'all' && !selectedProduct,
-  });
-
   if (activeTab === 'shop') {
     if (selectedProduct) {
       // If we are looking at a product detail
@@ -104,6 +96,10 @@ export default function Breadcrumbs({
       label: 'Quản trị hệ thống',
       active: true,
     });
+  }
+
+  if (items.length === 0) {
+    return null;
   }
 
   return (
