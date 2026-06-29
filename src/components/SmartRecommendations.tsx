@@ -42,24 +42,31 @@ export default function SmartRecommendations({
 
     // 2. Process items currently in the cart
     cart.forEach((item) => {
+      if (!item || !item.product) return;
       const p = item.product;
-      categoryCount[p.category] = (categoryCount[p.category] || 0) + 3;
-      brandCount[p.brand] = (brandCount[p.brand] || 0) + 4;
-      scaleCount[p.scale] = (scaleCount[p.scale] || 0) + 2;
+      if (p.category) categoryCount[p.category] = (categoryCount[p.category] || 0) + 3;
+      if (p.brand) brandCount[p.brand] = (brandCount[p.brand] || 0) + 4;
+      if (p.scale) scaleCount[p.scale] = (scaleCount[p.scale] || 0) + 2;
     });
 
     // 3. Process previous orders
     orders.forEach((o) => {
+      if (!o || !o.items) return;
       o.items.forEach((item) => {
+        if (!item) return;
         const matchingOriginal = allProducts.find((p) => p.id === item.productId);
         const cat = matchingOriginal?.category || '';
         if (cat) categoryCount[cat] = (categoryCount[cat] || 0) + 5;
-        brandCount[item.brand] = (brandCount[item.brand] || 0) + 6;
-        scaleCount[item.scale] = (scaleCount[item.scale] || 0) + 3;
+        if (item.brand) brandCount[item.brand] = (brandCount[item.brand] || 0) + 6;
+        if (item.scale) scaleCount[item.scale] = (scaleCount[item.scale] || 0) + 3;
       });
     });
 
-    const cartProductIds = new Set(cart.map((item) => item.product.id));
+    const cartProductIds = new Set(
+      cart
+        .filter((item) => item && item.product && item.product.id)
+        .map((item) => item.product.id)
+    );
 
     // Calculate score of each product in shop
     const scoredProducts = allProducts

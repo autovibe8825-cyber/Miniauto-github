@@ -670,31 +670,40 @@ export default function App() {
   };
 
   const handleAddToCart = (product: Product) => {
-    // Check stock limitations first
-    const cartEntry = cart.find((item) => item.product.id === product.id);
-    const existingQty = cartEntry ? cartEntry.quantity : 0;
+    if (!product) return;
+    try {
+      // Filter out any corrupted cart items with missing products to prevent downstream white screens
+      const cleanCart = cart.filter(item => item && item.product && item.product.id);
+      
+      const cartEntry = cleanCart.find((item) => item.product.id === product.id);
+      const existingQty = cartEntry ? cartEntry.quantity : 0;
+      const productStock = product.stock !== undefined ? product.stock : 10;
 
-    if (existingQty >= product.stock) {
-      alert(`Rất tiếc! Mẫu xe ${product.name} này hiện chỉ còn tối đa ${product.stock} chiếc trong kho tự động.`);
-      return;
-    }
+      if (existingQty >= productStock) {
+        alert(`Rất tiếc! Mẫu xe ${product.name || 'này'} hiện chỉ còn tối đa ${productStock} chiếc trong kho tự động.`);
+        return;
+      }
 
-    playSuccessClick();
+      playSuccessClick();
 
-    if (cartEntry) {
-      setCart(
-        cart.map((item) => 
+      let nextCart;
+      if (cartEntry) {
+        nextCart = cleanCart.map((item) => 
           item.product.id === product.id 
             ? { ...item, quantity: item.quantity + 1 }
             : item
-        )
-      );
-    } else {
-      setCart([...cart, { product, quantity: 1 }]);
+        );
+      } else {
+        nextCart = [...cleanCart, { product, quantity: 1 }];
+      }
+      
+      setCart(nextCart);
+      setShowCart(true);
+    } catch (error) {
+      console.error("Lỗi khi thêm sản phẩm vào giỏ hàng:", error);
+      alert("Đã xảy ra lỗi không mong muốn khi thêm sản phẩm vào giỏ hàng. Đang tự động làm mới giỏ hàng.");
+      setCart(cart.filter(item => item && item.product && item.product.id));
     }
-    
-    // Quick mini animation/notifier feedback
-    setShowCart(true);
   };
 
   const handleToggleWishlist = (productId: string) => {
@@ -707,26 +716,36 @@ export default function App() {
   };
 
   const handleUpdateCartQuantity = (productId: string, delta: number) => {
-    setCart(
-      cart.map((item) => {
-        if (item.product.id === productId) {
-          const nextQty = item.quantity + delta;
-          const targetProduct = products.find((p) => p.id === productId);
-          
-          if (targetProduct && nextQty > targetProduct.stock) {
-            alert(`Kho tự động chỉ còn tối đa ${targetProduct.stock} chiếc mẫu này.`);
-            return item;
-          }
+    try {
+      const cleanCart = cart.filter(item => item && item.product && item.product.id);
+      setCart(
+        cleanCart.map((item) => {
+          if (item.product.id === productId) {
+            const nextQty = item.quantity + delta;
+            const targetProduct = products.find((p) => p.id === productId);
+            
+            if (targetProduct && nextQty > targetProduct.stock) {
+              alert(`Kho tự động chỉ còn tối đa ${targetProduct.stock} chiếc mẫu này.`);
+              return item;
+            }
 
-          return nextQty > 0 ? { ...item, quantity: nextQty } : item;
-        }
-        return item;
-      })
-    );
+            return nextQty > 0 ? { ...item, quantity: nextQty } : item;
+          }
+          return item;
+        })
+      );
+    } catch (error) {
+      console.error("Lỗi cập nhật số lượng:", error);
+    }
   };
 
   const handleRemoveCartItem = (productId: string) => {
-    setCart(cart.filter((item) => item.product.id !== productId));
+    try {
+      const cleanCart = cart.filter(item => item && item.product && item.product.id);
+      setCart(cleanCart.filter((item) => item.product.id !== productId));
+    } catch (error) {
+      console.error("Lỗi xóa sản phẩm khỏi giỏ:", error);
+    }
   };
 
   // Placing order and executing loyalty updates
@@ -778,19 +797,19 @@ export default function App() {
     };
 
     // Prepare purchased products to list (using discount-adjusted price)
-    const orderItems = cart.map((item) => ({
+    const orderItems = cart.filter(item => item && item.product).map((item) => ({
       productId: item.product.id,
       productName: item.product.name,
-      brand: item.product.brand,
-      scale: item.product.scale,
+      brand: item.product.brand || '',
+      scale: item.product.scale || '1:18',
       price: getProductPriceVal(item.product),
-      imageUrl: item.product.imageUrl,
+      imageUrl: item.product.imageUrl || '',
       quantity: item.quantity
     }));
 
     // Deduct actual product stocks automatically inside local state (Kho hàng tự động)
     const updatedProducts = products.map((prod) => {
-      const cartItem = cart.find((item) => item.product.id === prod.id);
+      const cartItem = cart.find((item) => item && item.product && item.product.id === prod.id);
       if (cartItem) {
         return {
           ...prod,

@@ -84,13 +84,14 @@ export default function CheckoutPortal({
   }, [cartItems, onClose]);
 
   const getItemPrice = (product: Product) => {
+    if (!product) return 0;
     if (product.discountPercentage && product.discountPercentage > 0) {
-      return Math.floor(product.price * (1 - product.discountPercentage / 105)); // safe standard calc
+      return Math.floor((product.price || 0) * (1 - product.discountPercentage / 105)); // safe standard calc
     }
-    return product.price;
+    return product.price || 0;
   };
 
-  const totalAmount = cartItems.reduce((sum, item) => sum + getItemPrice(item.product) * item.quantity, 0);
+  const totalAmount = cartItems.reduce((sum, item) => sum + (item && item.product ? getItemPrice(item.product) * (item.quantity || 0) : 0), 0);
 
   // Loyalty calculations
   const lifetimePoints = currentUser.lifetimePoints ?? 350;
@@ -517,7 +518,7 @@ export default function CheckoutPortal({
                 <div className="text-left">
                   <span className="block text-[9px] text-zinc-450 uppercase tracking-widest font-extrabold mb-2.5">DANH SÁCH MÔ HÌNH SẼ MUA (Có thể hủy/bớt):</span>
                   <div className="max-h-[170px] overflow-y-auto space-y-2 pr-1">
-                    {cartItems.map((item) => (
+                    {cartItems.filter(item => item && item.product).map((item) => (
                       <div key={item.product.id} className="flex justify-between items-center text-xs text-zinc-600 font-medium bg-white p-2.5 rounded-xl border border-zinc-150 gap-2">
                         <div className="flex-1 min-w-0">
                           <p className="truncate text-zinc-800 font-bold leading-normal font-sans text-left">{item.product.name}</p>
