@@ -30,14 +30,15 @@ export default function CartDrawer({
   const isCartEmpty = cartItems.length === 0;
   
   const getItemPrice = (product: Product) => {
+    if (!product) return 0;
     if (product.discountPercentage && product.discountPercentage > 0) {
       return Math.floor(product.price * (1 - product.discountPercentage / 100));
     }
-    return product.price;
+    return product.price || 0;
   };
 
   const totalAmount = cartItems.reduce(
-    (sum, item) => sum + getItemPrice(item.product) * item.quantity, 
+    (sum, item) => sum + (item && item.product ? getItemPrice(item.product) : 0) * (item?.quantity || 0), 
     0
   );
 
@@ -86,7 +87,8 @@ export default function CartDrawer({
               </div>
             ) : (
               cartItems.map((item) => {
-                const limitReached = item.quantity >= item.product.stock;
+                if (!item || !item.product) return null;
+                const limitReached = item.quantity >= (item.product.stock || 0);
 
                 return (
                   <div 
@@ -97,8 +99,8 @@ export default function CartDrawer({
                     {/* Item Image */}
                     <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl bg-white border border-zinc-200/60 overflow-hidden flex-shrink-0 flex items-center justify-center p-1">
                       <img
-                        src={item.product.imageUrl}
-                        alt={item.product.name}
+                        src={item.product.imageUrl || ''}
+                        alt={item.product.name || ''}
                         referrerPolicy="no-referrer"
                         className="max-w-full max-h-full object-contain rounded-lg"
                       />
@@ -108,20 +110,20 @@ export default function CartDrawer({
                     <div className="flex-1 min-w-0 pr-6">
                       <div className="flex items-center gap-1.5 flex-wrap">
                         <span className="inline-block px-1.5 py-0.5 bg-red-50 text-red-650 rounded text-[9px] font-extrabold font-mono border border-red-200 leading-none">
-                          {item.product.scale}
+                          {item.product.scale || '1:24'}
                         </span>
                         <span className="inline-block text-[10px] text-zinc-500 font-bold truncate max-w-[80px]">
-                          {item.product.brand}
+                          {item.product.brand || ''}
                         </span>
                       </div>
                       
-                      <h4 className="text-xs font-semibold text-zinc-805 truncate mt-1 leading-snug uppercase tracking-tight">
-                        {item.product.name}
+                      <h4 className="text-xs font-semibold text-zinc-850 truncate mt-1 leading-snug uppercase tracking-tight">
+                        {item.product.name || ''}
                       </h4>
                       {item.product.discountPercentage && item.product.discountPercentage > 0 ? (
                         <div className="flex items-center gap-1.5 mt-0.5 flex-wrap whitespace-nowrap">
                           <span className="text-[9px] sm:text-[10px] text-zinc-400 line-through font-mono whitespace-nowrap shrink-0">
-                            {item.product.price.toLocaleString('vi-VN')}&nbsp;đ
+                            {(item.product.price || 0).toLocaleString('vi-VN')}&nbsp;đ
                           </span>
                           <span className="text-xs font-bold text-red-500 font-mono whitespace-nowrap shrink-0">
                             {getItemPrice(item.product).toLocaleString('vi-VN')}&nbsp;đ
@@ -129,7 +131,7 @@ export default function CartDrawer({
                         </div>
                       ) : (
                         <p className="text-xs font-bold text-red-500 font-mono mt-0.5 whitespace-nowrap shrink-0">
-                          {item.product.price.toLocaleString('vi-VN')}&nbsp;đ
+                          {(item.product.price || 0).toLocaleString('vi-VN')}&nbsp;đ
                         </p>
                       )}
 
@@ -137,7 +139,7 @@ export default function CartDrawer({
                       {limitReached && (
                         <div className="flex items-center gap-1 text-[9px] text-amber-600 mt-1 font-bold">
                           <ShieldAlert className="w-3 h-3 text-amber-500" />
-                          <span>Đã đạt mức kho tối đa ({item.product.stock})</span>
+                          <span>Đã đạt mức kho tối đa ({item.product.stock || 0})</span>
                         </div>
                       )}
 
