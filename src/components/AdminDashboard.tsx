@@ -8,6 +8,7 @@ interface AdminDashboardProps {
   orders: Order[];
   onAddProduct: (product: Omit<Product, 'id'>) => void;
   onUpdateProduct: (productId: string, updated: Partial<Product>) => void;
+  onDeleteProduct: (productId: string) => void;
   onUpdateOrderStatus: (orderId: string, status: OrderStatus) => void;
   onPrintOrderLabel?: (orderId: string) => void;
   adminNotifications?: AdminNotification[];
@@ -32,6 +33,7 @@ export default function AdminDashboard({
   orders,
   onAddProduct,
   onUpdateProduct,
+  onDeleteProduct,
   onUpdateOrderStatus,
   onPrintOrderLabel,
   adminNotifications = [],
@@ -1198,6 +1200,18 @@ export default function AdminDashboard({
                                 title="Tự động nhập thêm +10 xe"
                               >
                                 +10 chiếc
+                              </button>
+
+                              <button
+                                onClick={() => {
+                                  if (window.confirm(`Bạn có chắc chắn muốn xoá sản phẩm "${p.name}" khỏi hệ thống?`)) {
+                                    onDeleteProduct(p.id);
+                                  }
+                                }}
+                                className="p-1.5 bg-red-50 hover:bg-red-100 text-red-600 hover:text-red-700 rounded-lg border border-red-200 hover:border-red-350 cursor-pointer transition-all active:scale-95"
+                                title="Xoá sản phẩm"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
                               </button>
                             </div>
                           )}

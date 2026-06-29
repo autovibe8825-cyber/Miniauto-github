@@ -1154,6 +1154,16 @@ export default function App() {
     }).catch(e => console.error("Lỗi đồng bộ cập nhật sản phẩm lên DB:", e));
   };
 
+  // Delete product (Admin)
+  const handleAdminDeleteProduct = (productId: string) => {
+    setProducts((prevProds) => prevProds.filter((p) => p.id !== productId));
+
+    // Sync to database
+    fetch(`/api/db/products/${productId}`, {
+      method: 'DELETE'
+    }).catch(e => console.error("Lỗi đồng bộ xoá sản phẩm khỏi DB:", e));
+  };
+
   const handleAdminUpdateOrderStatus = (orderId: string, status: OrderStatus) => {
     const nextProgress = status === 'delivered' ? 100 : status === 'shipping' ? 70 : status === 'preparing' ? 30 : undefined;
     setOrders((prevOrders) =>
@@ -1661,6 +1671,7 @@ export default function App() {
                 orders={orders}
                 onAddProduct={handleAdminAddProduct}
                 onUpdateProduct={handleAdminUpdateProduct}
+                onDeleteProduct={handleAdminDeleteProduct}
                 onUpdateOrderStatus={handleAdminUpdateOrderStatus}
                 onPrintOrderLabel={handlePrintOrderLabel}
                 adminNotifications={adminNotifications}

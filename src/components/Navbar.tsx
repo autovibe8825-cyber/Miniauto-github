@@ -112,8 +112,8 @@ export default function Navbar({
                   MÔ HÌNH
                 </span>
               </div>
-              <span className="block text-[7px] sm:text-[8px] text-zinc-400 font-extrabold tracking-[0.15em] mt-0.5 uppercase">
-                Siêu Xe & Xe Cổ Tĩnh Cao Cấp
+              <span className="block text-[7px] sm:text-[8px] text-zinc-400 font-extrabold tracking-[0.12em] mt-0.5 uppercase">
+                Thế giới xe mô hình
               </span>
             </div>
           </div>
