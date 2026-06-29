@@ -129,6 +129,130 @@ async function sendOrderConfirmationEmail(order: any, recipientEmail: string) {
   }
 }
 
+async function sendOrderNotificationToAdmin(order: any, adminEmail: string) {
+  try {
+    const host = process.env.SMTP_HOST || 'smtp.hostinger.com';
+    const port = parseInt(process.env.SMTP_PORT || '465', 10);
+    const user = process.env.SMTP_USER;
+    const pass = process.env.SMTP_PASS;
+    const fromName = process.env.SMTP_FROM_NAME || 'MiniAuto Store';
+    const fromEmail = process.env.SMTP_FROM_EMAIL || user || 'contact@miniauto.store';
+
+    if (!user || !pass) {
+      console.log(`[SMTP SIMULATOR] Chưa cấu hình SMTP_USER hoặc SMTP_PASS. Gửi email ảo thông báo đơn hàng mới đến Admin ${adminEmail} cho đơn hàng ${order.id}.`);
+      return { simulated: true };
+    }
+
+    const transporter = nodemailer.createTransport({
+      host,
+      port,
+      secure: port === 465,
+      auth: {
+        user,
+        pass,
+      },
+      tls: {
+        rejectUnauthorized: false
+      }
+    });
+
+    const itemsHtml = order.items && Array.isArray(order.items)
+      ? order.items.map((item: any) => `
+          <tr style="border-bottom: 1px solid #e4e4e7;">
+            <td style="padding: 10px; color: #18181b;">
+              <strong>${item.productName}</strong><br/>
+              <span style="font-size: 11px; color: #71717a;">Hãng: ${item.brand || 'N/A'} | Tỷ lệ: ${item.scale || 'N/A'}</span>
+            </td>
+            <td style="padding: 10px; text-align: center; color: #18181b;">${item.quantity}</td>
+            <td style="padding: 10px; text-align: right; font-weight: bold; color: #ef4444;">${(item.price || 0).toLocaleString('vi-VN')} đ</td>
+          </tr>
+        `).join('')
+      : '';
+
+    const emailBodyHtml = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 25px; border: 1px solid #3f3f46; border-radius: 16px; background-color: #ffffff; color: #18181b; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
+        <div style="text-align: center; border-bottom: 3px solid #ef4444; padding-bottom: 20px; margin-bottom: 20px;">
+          <span style="font-size: 40px;">🚨</span>
+          <h1 style="color: #ef4444; margin: 10px 0 0; font-size: 24px; font-weight: 800; letter-spacing: -0.5px;">BÁO CÁO ĐƠN HÀNG MỚI (ADMIN)</h1>
+          <p style="margin: 5px 0 0; font-size: 12px; color: #71717a; font-weight: bold; text-transform: uppercase; letter-spacing: 1px;">MÁY CHỦ BÁO ĐƠN TỰ ĐỘNG - TIỆM XE MÔ HÌNH</p>
+        </div>
+        
+        <div style="font-size: 14px; line-height: 1.6; color: #27272a;">
+          <p>Chào sếp,</p>
+          <p>Cửa hàng vừa nhận được một đơn hàng mới từ người mua. Dưới đây là đầy đủ thông tin chi tiết đơn đặt hàng để sếp xử lý giao vận:</p>
+          
+          <div style="background-color: #f4f4f5; padding: 18px; border-radius: 12px; margin: 20px 0; border: 1px solid #e4e4e7;">
+            <h3 style="margin-top: 0; color: #18181b; font-size: 14px; border-bottom: 1px dashed #d4d4d8; padding-bottom: 8px; font-weight: 800; text-transform: uppercase;">📋 THÔNG TIN VẬN ĐƠN: #${order.id}</h3>
+            <table style="width: 100%; font-size: 13px; line-height: 1.8; border-collapse: collapse;">
+              <tr>
+                <td style="color: #71717a; width: 140px; padding: 4px 0;">Tên khách đặt:</td>
+                <td style="font-weight: bold; color: #18181b; padding: 4px 0;">${order.userName}</td>
+              </tr>
+              <tr>
+                <td style="color: #71717a; padding: 4px 0;">Số điện thoại:</td>
+                <td style="font-weight: bold; color: #ef4444; padding: 4px 0;">${order.userPhone}</td>
+              </tr>
+              <tr>
+                <td style="color: #71717a; padding: 4px 0;">Địa chỉ giao hàng:</td>
+                <td style="color: #18181b; padding: 4px 0; font-weight: bold;">${order.userAddress}</td>
+              </tr>
+              <tr>
+                <td style="color: #71717a; padding: 4px 0;">Email người nhận:</td>
+                <td style="color: #18181b; padding: 4px 0;">${order.userEmail || 'Không cung cấp'}</td>
+              </tr>
+              <tr>
+                <td style="color: #71717a; padding: 4px 0;">Phương thức thanh toán:</td>
+                <td style="padding: 4px 0;"><strong style="background-color: #10b981; color: #ffffff; padding: 2px 6px; border-radius: 6px; font-size: 11px; text-transform: uppercase;">${order.paymentMethod ? order.paymentMethod.toUpperCase() : 'BANK'}</strong></td>
+              </tr>
+              ${order.carrier ? `
+              <tr>
+                <td style="color: #71717a; padding: 4px 0;">Đối tác vận chuyển:</td>
+                <td style="color: #18181b; font-weight: bold; padding: 4px 0;">${order.carrier.toUpperCase()} ${order.trackingCode ? `(<span style="color: #0284c7; font-family: monospace;">${order.trackingCode}</span>)` : ''}</td>
+              </tr>
+              ` : ''}
+            </table>
+          </div>
+
+          <div style="margin: 25px 0;">
+            <h4 style="margin: 0 0 12px; color: #18181b; font-size: 14px; font-weight: bold; border-left: 4px solid #ef4444; padding-left: 10px; text-transform: uppercase;">🛒 CHI TIẾT SẢN PHẨM KHÁCH ĐẶT:</h4>
+            <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+              <thead>
+                <tr style="background-color: #f4f4f5; text-align: left; border-bottom: 2px solid #e4e4e7; color: #18181b;">
+                  <th style="padding: 10px; font-weight: bold;">Mẫu ô tô</th>
+                  <th style="padding: 10px; font-weight: bold; text-align: center; width: 60px;">SL</th>
+                  <th style="padding: 10px; font-weight: bold; text-align: right; width: 120px;">Đơn giá</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${itemsHtml}
+                <tr style="border-top: 2px solid #e4e4e7; font-weight: bold; background-color: #fafafa;">
+                  <td colspan="2" style="padding: 12px; text-align: right; font-size: 13px; color: #18181b;">TỔNG CỘNG HÓA ĐƠN:</td>
+                  <td style="padding: 12px; text-align: right; font-size: 16px; color: #ef4444; font-weight: 900;">${(order.totalAmount || 0).toLocaleString('vi-VN')} đ</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div style="border-top: 1px solid #e4e4e7; padding-top: 20px; margin-top: 30px; text-align: center; font-size: 12px; color: #71717a; line-height: 1.5;">
+            <p>Hệ thống tự động thông báo đơn hàng mới. Vui lòng đăng nhập vào phân hệ quản trị để xử lý đơn hàng.</p>
+          </div>
+        </div>
+      </div>
+    `;
+
+    await transporter.sendMail({
+      from: `"${fromName}" <${fromEmail}>`,
+      to: adminEmail,
+      subject: `🚨 [ĐƠN HÀNG MỚI] Khách hàng ${order.userName} vừa chốt đơn #${order.id}`,
+      html: emailBodyHtml
+    });
+
+    console.log(`[SMTP SUCCESS] Đã gửi thư báo đơn hàng mới thành công đến Admin: ${adminEmail}`);
+  } catch (err) {
+    console.error(`[SMTP ERROR] Thất bại khi gửi email báo đơn hàng mới tới Admin: ${adminEmail}`, err);
+  }
+}
+
 interface RoomState {
   roomId: string;
   activeTab: string;
@@ -633,6 +757,21 @@ async function startServer() {
         });
       } else {
         console.warn(`[SMTP WARNING] Không thể xác định địa chỉ email của khách hàng cho đơn hàng #${order.id}. Bỏ qua bước gửi email.`);
+      }
+
+      // Also send a notification email to the admin with the buyer's name, phone, address and product info!
+      try {
+        let adminEmail = 'autovibe8825@gmail.com';
+        const settings = await dbHelpers.getBankSettings();
+        if (settings && settings.adminEmail) {
+          adminEmail = settings.adminEmail;
+        }
+        console.log(`[SMTP TRIGGER] Khởi chạy luồng gửi email thông báo đơn hàng mới đến Admin ${adminEmail}`);
+        sendOrderNotificationToAdmin(req.body, adminEmail).catch((mailErr) => {
+          console.error(`[SMTP ERROR] Thất bại khi gửi email báo đơn hàng mới tới Admin:`, mailErr);
+        });
+      } catch (adminMailErr) {
+        console.error("Lỗi khi gửi email thông báo đơn hàng mới tới Admin:", adminMailErr);
       }
 
       // Broadcast order:created to all SSE clients in real-time

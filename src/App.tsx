@@ -415,12 +415,13 @@ export default function App() {
   const [showCheckout, setShowCheckout] = useState(false);
 
   // Real-time URL Routing Engine for deep-linking & syncing address bar path
-  const [pendingProductId, setPendingProductId] = useState<string | null>(null);
+  const [pendingCategorySlug, setPendingCategorySlug] = useState<string | null>(null);
+  const [pendingProductSlug, setPendingProductSlug] = useState<string | null>(null);
 
   const parseAndSetRoute = (path: string) => {
     const cleanPath = path.replace(/\/+$/, '') || '/';
     
-    if (cleanPath === '/' || cleanPath === '/shop') {
+    if (cleanPath === '/' || cleanPath === '/shop' || cleanPath === '/cuahang') {
       setActiveTab('shop');
       setSelectedCategory('all');
       setSelectedProduct(null);
@@ -430,6 +431,19 @@ export default function App() {
       setActiveTab('tracking');
     } else if (cleanPath === '/tich-diem') {
       setActiveTab('loyalty');
+    } else if (cleanPath.startsWith('/cuahang/')) {
+      setActiveTab('shop');
+      const subPath = cleanPath.substring('/cuahang/'.length);
+      const parts = subPath.split('/');
+      
+      if (parts.length === 1) {
+        const slug = parts[0];
+        setPendingCategorySlug(slug);
+        setPendingProductSlug(slug);
+      } else if (parts.length >= 2) {
+        setPendingCategorySlug(parts[0]);
+        setPendingProductSlug(parts[1]);
+      }
     } else if (cleanPath.startsWith('/danh-muc/')) {
       const category = cleanPath.substring('/danh-muc/'.length);
       setActiveTab('shop');
@@ -438,7 +452,7 @@ export default function App() {
     } else if (cleanPath.startsWith('/san-pham/')) {
       const prodIdOrSlug = cleanPath.substring('/san-pham/'.length);
       setActiveTab('shop');
-      setPendingProductId(prodIdOrSlug);
+      setPendingProductSlug(prodIdOrSlug);
     }
   };
 
@@ -449,7 +463,7 @@ export default function App() {
 
   // 2. Sync State modifications into Browser Address Bar URL
   useEffect(() => {
-    let path = '/';
+    let path = '/cuahang';
     if (activeTab === 'admin') {
       path = '/admin';
     } else if (activeTab === 'tracking') {
@@ -458,9 +472,12 @@ export default function App() {
       path = '/tich-diem';
     } else if (activeTab === 'shop') {
       if (selectedProduct) {
-        path = `/san-pham/${slugify(selectedProduct.name)}`;
+        const catSlug = slugify(selectedProduct.category || 'san-pham');
+        path = `/cuahang/${catSlug}/${slugify(selectedProduct.name)}`;
       } else if (selectedCategory && selectedCategory !== 'all') {
-        path = `/danh-muc/${selectedCategory}`;
+        path = `/cuahang/${slugify(selectedCategory)}`;
+      } else {
+        path = '/cuahang';
       }
     }
 
@@ -469,18 +486,67 @@ export default function App() {
     }
   }, [activeTab, selectedCategory, selectedProduct]);
 
-  // 3. Resolve deep-linked pending products when database items load
+  // 3. Resolve deep-linked pending category and product when database items load
   useEffect(() => {
-    if (products.length > 0 && pendingProductId) {
-      const found = products.find(
-        (p) => p.id === pendingProductId || slugify(p.name) === pendingProductId
+    if (products.length > 0 && (pendingCategorySlug || pendingProductSlug)) {
+      let resolvedCategory: string | null = null;
+      let resolvedProduct: any = null;
+
+      const defaultCategories = ['supercar', 'suv', 'classic', 'jdm'];
+      const allCategoryValues = Array.from(
+        new Set([
+          ...defaultCategories,
+          ...products.map((p) => p.category?.trim()).filter(Boolean),
+        ])
       );
-      if (found) {
-        setSelectedProduct(found);
+
+      if (pendingCategorySlug) {
+        const foundCat = allCategoryValues.find(
+          (cat) => slugify(cat) === pendingCategorySlug || cat.toLowerCase() === pendingCategorySlug.toLowerCase()
+        );
+        if (foundCat) {
+          resolvedCategory = foundCat;
+        }
       }
-      setPendingProductId(null);
+
+      if (pendingProductSlug) {
+        const foundProd = products.find(
+          (p) => p.id === pendingProductSlug || slugify(p.name) === pendingProductSlug
+        );
+        if (foundProd) {
+          resolvedProduct = foundProd;
+          if (foundProd.category) {
+            resolvedCategory = foundProd.category;
+          }
+        }
+      }
+
+      if (!resolvedProduct && pendingProductSlug && !pendingCategorySlug) {
+        const foundCat = allCategoryValues.find(
+          (cat) => slugify(cat) === pendingProductSlug || cat.toLowerCase() === pendingProductSlug.toLowerCase()
+        );
+        if (foundCat) {
+          resolvedCategory = foundCat;
+        }
+      }
+
+      if (resolvedProduct) {
+        setSelectedProduct(resolvedProduct);
+        if (resolvedCategory) {
+          setSelectedCategory(resolvedCategory);
+        }
+      } else if (resolvedCategory) {
+        setSelectedCategory(resolvedCategory);
+        setSelectedProduct(null);
+      } else {
+        setSelectedCategory('all');
+        setSelectedProduct(null);
+      }
+
+      setPendingCategorySlug(null);
+      setPendingProductSlug(null);
     }
-  }, [products, pendingProductId]);
+  }, [products, pendingCategorySlug, pendingProductSlug]);
 
   // 4. Handle Browser Back & Forward PopState clicks
   useEffect(() => {
