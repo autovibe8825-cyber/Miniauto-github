@@ -113,6 +113,7 @@ export default function AdminDashboard({
   const [tmpAdminPassword, setTmpAdminPassword] = useState(bankSettings.adminPassword || '221293');
   const [showAdminPasswordInSettings, setShowAdminPasswordInSettings] = useState(false);
   const [bankSaveSuccess, setBankSaveSuccess] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
 
   // Form states to Add products
   const [showAddForm, setShowAddForm] = useState(false);
@@ -151,13 +152,42 @@ export default function AdminDashboard({
     }));
   };
 
-  // Handle direct file uploads to web memory buffer (Base64 for persistence, Object URL for video)
+  const uploadImageToServer = async (base64Data: string, filename: string): Promise<string> => {
+    setIsUploading(true);
+    try {
+      const res = await fetch('/api/upload', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          image: base64Data,
+          filename: filename,
+        }),
+      });
+      const data = await res.json();
+      if (data.success && data.url) {
+        return data.url;
+      }
+      throw new Error(data.error || 'Tải ảnh thất bại');
+    } catch (err: any) {
+      console.error('Lỗi khi tải ảnh lên server:', err);
+      alert('Không thể tải trực tiếp lên Hostinger: ' + err.message);
+      return base64Data; // fallback
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  // Handle direct file uploads to Hostinger server storage
   const handleAvatarUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
-      reader.onloadend = () => {
-        setNewProd(prev => ({ ...prev, imageUrl: reader.result as string }));
+      reader.onloadend = async () => {
+        const base64 = reader.result as string;
+        const serverUrl = await uploadImageToServer(base64, file.name);
+        setNewProd(prev => ({ ...prev, imageUrl: serverUrl }));
       };
       reader.readAsDataURL(file);
     }
@@ -167,22 +197,25 @@ export default function AdminDashboard({
     const files = e.target.files;
     if (files) {
       const fileList = Array.from(files);
-      const loadedImages: string[] = [];
-      let loadedCount = 0;
+      setIsUploading(true);
+      const uploadPromises = fileList.map((file: any) => {
+        return new Promise<string>((resolve) => {
+          const reader = new FileReader();
+          reader.onloadend = async () => {
+            const base64 = reader.result as string;
+            const url = await uploadImageToServer(base64, file.name);
+            resolve(url);
+          };
+          reader.readAsDataURL(file);
+        });
+      });
 
-      fileList.forEach((file: any) => {
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          loadedImages.push(reader.result as string);
-          loadedCount++;
-          if (loadedCount === fileList.length) {
-            setNewProd(prev => ({
-              ...prev,
-              galleryImages: [...prev.galleryImages, ...loadedImages].slice(0, 9)
-            }));
-          }
-        };
-        reader.readAsDataURL(file);
+      Promise.all(uploadPromises).then((urls) => {
+        setNewProd(prev => ({
+          ...prev,
+          galleryImages: [...prev.galleryImages, ...urls].slice(0, 9)
+        }));
+        setIsUploading(false);
       });
     }
   };
@@ -299,8 +332,10 @@ export default function AdminDashboard({
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
-      reader.onloadend = () => {
-        setEditFormImageUrl(reader.result as string);
+      reader.onloadend = async () => {
+        const base64 = reader.result as string;
+        const serverUrl = await uploadImageToServer(base64, file.name);
+        setEditFormImageUrl(serverUrl);
       };
       reader.readAsDataURL(file);
     }
@@ -310,19 +345,22 @@ export default function AdminDashboard({
     const files = e.target.files;
     if (files) {
       const fileList = Array.from(files);
-      const loadedImages: string[] = [];
-      let loadedCount = 0;
+      setIsUploading(true);
+      const uploadPromises = fileList.map((file: any) => {
+        return new Promise<string>((resolve) => {
+          const reader = new FileReader();
+          reader.onloadend = async () => {
+            const base64 = reader.result as string;
+            const url = await uploadImageToServer(base64, file.name);
+            resolve(url);
+          };
+          reader.readAsDataURL(file);
+        });
+      });
 
-      fileList.forEach((file: any) => {
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          loadedImages.push(reader.result as string);
-          loadedCount++;
-          if (loadedCount === fileList.length) {
-            setEditFormGalleryImages(prev => [...prev, ...loadedImages].slice(0, 9));
-          }
-        };
-        reader.readAsDataURL(file);
+      Promise.all(uploadPromises).then((urls) => {
+        setEditFormGalleryImages(prev => [...prev, ...urls].slice(0, 9));
+        setIsUploading(false);
       });
     }
   };
@@ -830,9 +868,15 @@ export default function AdminDashboard({
 
               {/* Direct Web Storage Media Uploader Section */}
               <div className="bg-zinc-50/50 p-4 rounded-2xl border border-zinc-200 space-y-4">
+                {isUploading && (
+                  <div className="bg-[#0a5cff]/5 text-[#0a5cff] text-[11px] font-bold px-3 py-2 rounded-lg flex items-center gap-2 animate-pulse border border-[#0a5cff]/20">
+                    <span className="inline-block w-2.5 h-2.5 rounded-full bg-[#0a5cff] animate-ping"></span>
+                    <span>ĐANG LƯU ẢNH TRỰC TIẾP VÀO HOSTINGER... VUI LÒNG ĐỢI TRONG GIÂY LÁT.</span>
+                  </div>
+                )}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-zinc-250">
-                  <span className="text-[11px] font-extrabold text-amber-850 uppercase tracking-widest">
-                    TẢI LÊN TRỰC TIẾP VÀO BỘ NHỚ LƯU TRỮ (LOCAL STORE/IMAGE GALLERY)
+                  <span className="text-[11px] font-extrabold text-[#0a5cff] uppercase tracking-widest flex items-center gap-1">
+                    🟢 TẢI LÊN LƯU TRỰC TIẾP VÀO HOSTINGER (SERVER FILE SYSTEM)
                   </span>
                   
                   <button
@@ -2774,6 +2818,13 @@ export default function AdminDashboard({
                 ×
               </button>
             </div>
+
+            {isUploading && (
+              <div className="bg-red-500/15 text-red-400 text-[11px] font-bold px-5 py-2.5 flex items-center gap-2 animate-pulse border-b border-white/10">
+                <span className="inline-block w-2.5 h-2.5 rounded-full bg-red-500 animate-ping"></span>
+                <span>ĐANG LƯU ẢNH TRỰC TIẾP VÀO HOSTINGER... VUI LÒNG ĐỢI TRONG GIÂY LÁT.</span>
+              </div>
+            )}
 
             {/* Form */}
             <form onSubmit={handleSaveFullEdit} className="overflow-y-auto p-6 space-y-4 flex-1">

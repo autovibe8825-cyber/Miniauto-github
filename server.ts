@@ -1,5 +1,6 @@
 import express from "express";
 import path from "path";
+import fs from "fs";
 import { createServer as createViteServer } from "vite";
 import * as dbHelpers from "./src/db/helpers.ts";
 import { requireAuth, AuthRequest } from "./src/middleware/auth.ts";
@@ -153,7 +154,15 @@ async function startServer() {
   const app = express();
   const PORT = 3000;
 
-  app.use(express.json());
+  app.use(express.json({ limit: "50mb" }));
+  app.use(express.urlencoded({ limit: "50mb", extended: true }));
+
+  // Ensure uploads directory exists and is served statically
+  const uploadsDir = path.join(process.cwd(), "uploads");
+  if (!fs.existsSync(uploadsDir)) {
+    fs.mkdirSync(uploadsDir, { recursive: true });
+  }
+  app.use("/uploads", express.static(uploadsDir));
 
   // Seed PostgreSQL database with initial data
   await dbHelpers.seedInitialData();
@@ -494,6 +503,56 @@ async function startServer() {
       await dbHelpers.deleteProduct(req.params.id);
       res.json({ success: true });
     } catch (error: any) {
+      res.status(500).json({ success: false, error: error.message });
+    }
+  });
+
+  app.post("/api/upload", (req, res) => {
+    try {
+      const { image, filename } = req.body;
+      if (!image) {
+        return res.status(400).json({ success: false, error: "Không tìm thấy dữ liệu ảnh" });
+      }
+
+      // Check if image is base64
+      let matches = image.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
+      let buffer: Buffer;
+      let extension = "png";
+
+      if (matches && matches.length === 3) {
+        const mimeType = matches[1];
+        if (mimeType.includes("jpeg") || mimeType.includes("jpg")) {
+          extension = "jpg";
+        } else if (mimeType.includes("gif")) {
+          extension = "gif";
+        } else if (mimeType.includes("webp")) {
+          extension = "webp";
+        }
+        buffer = Buffer.from(matches[2], "base64");
+      } else {
+        // Fallback: if it doesn't have data URI prefix, try parsing as raw base64
+        try {
+          buffer = Buffer.from(image, "base64");
+        } catch (err) {
+          return res.status(400).json({ success: false, error: "Định dạng ảnh Base64 không hợp lệ" });
+        }
+      }
+
+      // Generate a clean and safe filename
+      const safeFilename = (filename || "upload")
+        .replace(/[^a-zA-Z0-9.\-_]/g, "_")
+        .replace(/\.[^/.]+$/, ""); // strip extension
+      
+      const uniqueFilename = `${safeFilename}_${Date.now()}.${extension}`;
+      const filePath = path.join(process.cwd(), "uploads", uniqueFilename);
+
+      fs.writeFileSync(filePath, buffer);
+
+      // Return the public relative URL
+      const relativeUrl = `/uploads/${uniqueFilename}`;
+      res.json({ success: true, url: relativeUrl });
+    } catch (error: any) {
+      console.error("Lỗi khi tải ảnh lên:", error);
       res.status(500).json({ success: false, error: error.message });
     }
   });
