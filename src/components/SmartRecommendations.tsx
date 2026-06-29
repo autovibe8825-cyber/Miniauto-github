@@ -86,7 +86,12 @@ export default function SmartRecommendations({
         }
 
         // Slight randomized factor to keep recommendation lively yet accurate
-        const randomFactor = (parseFloat(p.id.replace('prod-', '')) % 5) * 0.2;
+        let parsedId = parseFloat(p.id.replace('prod-', ''));
+        if (isNaN(parsedId)) {
+          // Fallback hash for custom IDs
+          parsedId = p.id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+        }
+        const randomFactor = ((parsedId || 0) % 5) * 0.2;
         score += randomFactor;
 
         // Calculate a realistic friendly matching percentage (e.g. 86% to 99%)
