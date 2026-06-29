@@ -351,7 +351,25 @@ export async function createOrder(o: Order) {
       }
     }
 
-    return r[0];
+    return {
+      id: r[0].id,
+      userId: r[0].userId,
+      userName: r[0].userName,
+      userPhone: r[0].userPhone,
+      userAddress: r[0].userAddress,
+      totalAmount: r[0].totalAmount,
+      status: r[0].status,
+      paymentMethod: r[0].paymentMethod,
+      paymentStatus: r[0].paymentStatus,
+      deliveryProgress: r[0].deliveryProgress,
+      deliveryRouteIndex: r[0].deliveryRouteIndex,
+      carrier: r[0].carrier || undefined,
+      trackingCode: r[0].trackingCode || undefined,
+      carrierLabelPrinted: r[0].carrierLabelPrinted,
+      createdAt: r[0].createdAt.toISOString(),
+      updatedAt: r[0].updatedAt.toISOString(),
+      items: o.items
+    };
   } catch (error) {
     console.error('createOrder failed:', error);
     throw new Error('Khởi tạo đơn hàng mới thất bại.', { cause: error });

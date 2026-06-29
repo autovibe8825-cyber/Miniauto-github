@@ -219,13 +219,16 @@ export default function App() {
           } else if (payload.type === 'order:created') {
             const newOrder = payload.data;
             setOrders(prev => {
-              if (prev.some(o => o.id === newOrder.id)) return prev;
-              return [newOrder, ...prev];
+              const orderWithItems = { items: [], ...newOrder };
+              if (prev.some(o => o.id === orderWithItems.id)) {
+                return prev.map(o => o.id === orderWithItems.id ? { ...o, ...orderWithItems } : o);
+              }
+              return [orderWithItems, ...prev];
             });
           } else if (payload.type === 'order:updated') {
             const updatedOrder = payload.data;
             setOrders(prev => {
-              return prev.map(o => o.id === updatedOrder.id ? updatedOrder : o);
+              return prev.map(o => o.id === updatedOrder.id ? { ...o, ...updatedOrder } : o);
             });
           }
         } catch (err) {
