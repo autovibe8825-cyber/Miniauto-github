@@ -11,6 +11,7 @@ import AdminDashboard from './components/AdminDashboard';
 import SmartRecommendations from './components/SmartRecommendations';
 import LoyaltyHub from './components/LoyaltyHub';
 import CustomerAuthModal from './components/CustomerAuthModal';
+import Breadcrumbs from './components/Breadcrumbs';
 import { Sparkles, Trophy, ShieldAlert, ShieldCheck, BadgeCheck, Clock, Bookmark, Heart, Send, Bell, BellRing, Volume2, X, RefreshCw, ChevronRight, Flame, Check, Zap, Eye, EyeOff, Lock, Mail } from 'lucide-react';
 import { playChimeSound, playSuccessClick } from './utils/audio';
 import { motion, AnimatePresence } from 'motion/react';
@@ -1435,6 +1436,27 @@ export default function App() {
           </div>
         </div>
       </div>
+
+      {/* Dynamic Breadcrumbs Navigation Path indicator */}
+      <Breadcrumbs
+        activeTab={activeTab}
+        selectedCategory={selectedCategory}
+        selectedScale={selectedScale}
+        selectedProduct={selectedProduct}
+        onNavigate={(tab, cat, resetProduct, resetScale) => {
+          setActiveTab(tab);
+          if (cat) {
+            setSelectedCategory(cat);
+            setShowOnlyWishlist(false);
+          }
+          if (resetProduct) {
+            setSelectedProduct(null);
+          }
+          if (resetScale) {
+            setSelectedScale('all');
+          }
+        }}
+      />
 
       {/* Hero promo Section (Mobile-responsive high impact card banner) */}
       {activeTab === 'shop' && (
