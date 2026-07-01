@@ -38,6 +38,23 @@ try {
   console.warn("Could not wrap window.confirm", e);
 }
 
+// Global fetch override to automatically prepend base path prefix in production subpaths
+try {
+  const originalFetch = window.fetch;
+  window.fetch = function (input, init) {
+    if (typeof input === 'string' && input.startsWith('/api/')) {
+      const baseUrl = (import.meta as any).env.BASE_URL;
+      if (baseUrl && baseUrl !== '/') {
+        const cleanBase = baseUrl.replace(/\/+$/, '');
+        input = cleanBase + input;
+      }
+    }
+    return originalFetch(input, init);
+  };
+} catch (e) {
+  console.warn("Could not wrap window.fetch", e);
+}
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <App />
