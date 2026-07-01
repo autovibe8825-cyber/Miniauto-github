@@ -118,21 +118,7 @@ export default function Navbar({
             </div>
           </div>
 
-          {/* Desktop Search Center - only visible on shop page */}
-          {activeTab === 'shop' && (
-            <div className="hidden md:flex flex-1 max-w-sm mx-4 lg:mx-8" id="nav-search-bar">
-              <div className="relative w-full">
-                <input
-                  type="text"
-                  placeholder="Tìm mô hình ô tô..."
-                  value={searchQuery}
-                  onChange={(e) => onSearchChange(e.target.value)}
-                  className="w-full bg-zinc-50 hover:bg-zinc-100/80 text-zinc-900 placeholder-zinc-400 pl-10 pr-4 py-2.5 rounded-xl border border-zinc-200 focus:outline-none focus:border-red-450 transition-all text-sm"
-                />
-                <Search className="absolute left-3 top-3 w-4 h-4 text-zinc-400" />
-              </div>
-            </div>
-          )}
+          {/* Desktop Search Center - only visible on shop page (Hidden) */}
 
           {/* User Settings & Navigation Links */}
           <div className="flex items-center gap-1 sm:gap-2 ml-auto">
@@ -278,17 +264,7 @@ export default function Navbar({
       {activeTab === 'shop' && (
         <div className="py-2 px-2.5 sm:px-4 z-10 relative mt-1 sm:mt-2" id="mobile-filter-bar">
           <div className="max-w-7xl mx-auto rounded-3xl bg-white border border-zinc-150 p-2.5 md:p-3 flex flex-col gap-2.5 shadow-xl shadow-zinc-100/50">
-            {/* Mobile Search input */}
-            <div className="relative md:hidden w-full">
-              <input
-                type="text"
-                placeholder="Tìm xe cổ, siêu xe, JDM..."
-                value={searchQuery}
-                onChange={(e) => onSearchChange(e.target.value)}
-                className="w-full bg-zinc-50/80 border border-zinc-200 text-zinc-900 placeholder-zinc-400 pl-10 pr-4 py-2 rounded-2xl focus:outline-none focus:border-red-400 focus:bg-white text-xs font-medium"
-              />
-              <Search className="absolute left-3.5 top-2.5 w-3.5 h-3.5 text-zinc-400" />
-            </div>
+            {/* Mobile Search input (Hidden) */}
 
             {/* Main Filters Container: Flex rows for horizontal scrolling on mobile, crisp layout on desktop */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-2.5 w-full overflow-hidden">

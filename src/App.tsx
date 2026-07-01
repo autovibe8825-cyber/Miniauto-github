@@ -12,7 +12,7 @@ import SmartRecommendations from './components/SmartRecommendations';
 import LoyaltyHub from './components/LoyaltyHub';
 import CustomerAuthModal from './components/CustomerAuthModal';
 import Breadcrumbs from './components/Breadcrumbs';
-import { Sparkles, Trophy, ShieldAlert, ShieldCheck, BadgeCheck, Clock, Bookmark, Heart, Send, Bell, BellRing, Volume2, X, RefreshCw, ChevronRight, Flame, Check, Zap, Eye, EyeOff, Lock, Mail } from 'lucide-react';
+import { Sparkles, Trophy, ShieldAlert, ShieldCheck, BadgeCheck, Clock, Bookmark, Heart, Send, Bell, BellRing, Volume2, X, RefreshCw, ChevronRight, Flame, Check, Zap, Eye, EyeOff, Lock, Mail, ArrowUp } from 'lucide-react';
 import { playChimeSound, playSuccessClick } from './utils/audio';
 import { motion, AnimatePresence } from 'motion/react';
 import { getCartAndMigrate, saveCartToIndexedDB } from './utils/cartIndexedDB';
@@ -399,10 +399,25 @@ export default function App() {
   // Customer registration and authorization states
   const [showCustomerAuthModal, setShowCustomerAuthModal] = useState(false);
   const [showcaseImgError, setShowcaseImgError] = useState(false);
+  const [showBackToTop, setShowBackToTop] = useState(false);
 
   useEffect(() => {
     setShowcaseImgError(false);
   }, [bankSettings.showcaseProductId]);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 400) {
+        setShowBackToTop(true);
+      } else {
+        setShowBackToTop(false);
+      }
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, []);
 
   // 2. UI interaction states
   const [activeTab, setActiveTab] = useState<'shop' | 'tracking' | 'loyalty' | 'admin'>('shop');
@@ -425,11 +440,11 @@ export default function App() {
       setActiveTab('shop');
       setSelectedCategory('all');
       setSelectedProduct(null);
-    } else if (cleanPath === '/admin') {
+    } else if (cleanPath === '/admin' || cleanPath === '/cuahang/admin') {
       setActiveTab('admin');
-    } else if (cleanPath === '/tra-cuu') {
+    } else if (cleanPath === '/tra-cuu' || cleanPath === '/cuahang/tra-cuu') {
       setActiveTab('tracking');
-    } else if (cleanPath === '/tich-diem') {
+    } else if (cleanPath === '/tich-diem' || cleanPath === '/cuahang/tich-diem') {
       setActiveTab('loyalty');
     } else if (cleanPath.startsWith('/cuahang/')) {
       setActiveTab('shop');
@@ -465,11 +480,11 @@ export default function App() {
   useEffect(() => {
     let path = '/cuahang';
     if (activeTab === 'admin') {
-      path = '/admin';
+      path = '/cuahang/admin';
     } else if (activeTab === 'tracking') {
-      path = '/tra-cuu';
+      path = '/cuahang/tra-cuu';
     } else if (activeTab === 'loyalty') {
-      path = '/tich-diem';
+      path = '/cuahang/tich-diem';
     } else if (activeTab === 'shop') {
       if (selectedProduct) {
         const catSlug = slugify(selectedProduct.category || 'san-pham');
@@ -1597,7 +1612,8 @@ export default function App() {
         </div>
       </div>
 
-      {/* Dynamic Breadcrumbs Navigation Path indicator */}
+      {/* Dynamic Breadcrumbs Navigation Path indicator (Hidden as requested) */}
+      {/* 
       <Breadcrumbs
         activeTab={activeTab}
         selectedCategory={selectedCategory}
@@ -1617,6 +1633,7 @@ export default function App() {
           }
         }}
       />
+      */}
 
       {/* Hero promo Section (Mobile-responsive high impact card banner) */}
       {activeTab === 'shop' && (
@@ -2406,6 +2423,18 @@ export default function App() {
             <X className="w-3.5 h-3.5" />
           </button>
         </div>
+      )}
+
+      {/* Modern, Floating Back to Top Button */}
+      {showBackToTop && (
+        <button
+          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+          className="fixed bottom-6 right-6 z-50 bg-red-600 hover:bg-red-500 text-white p-3.5 rounded-full shadow-xl hover:shadow-red-500/20 active:scale-95 hover:scale-110 transition-all duration-300 flex items-center justify-center cursor-pointer group border border-red-500/10"
+          title="Quay lại đầu trang"
+          id="back-to-top-btn"
+        >
+          <ArrowUp className="w-5 h-5 transition-transform duration-300 group-hover:-translate-y-1" />
+        </button>
       )}
 
     </div>
