@@ -281,10 +281,12 @@ async function startServer() {
   app.use(express.json({ limit: "50mb" }));
   app.use(express.urlencoded({ limit: "50mb", extended: true }));
 
-  // Redirect root URL to /cuahang/ for routing consistency
-  app.get("/", (req, res) => {
-    res.redirect("/cuahang/");
-  });
+  // Redirect root URL to /cuahang/ for routing consistency only in production
+  if (process.env.NODE_ENV === "production") {
+    app.get("/", (req, res) => {
+      res.redirect("/cuahang/");
+    });
+  }
 
   // Ensure uploads directory exists and is served statically
   const uploadsDir = path.join(process.cwd(), "uploads");

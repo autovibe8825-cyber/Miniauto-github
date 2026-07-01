@@ -4,8 +4,9 @@ import path from 'path';
 import {defineConfig} from 'vite';
 
 export default defineConfig(() => {
+  const isProd = process.env.NODE_ENV === 'production';
   return {
-    base: '/cuahang/',
+    base: isProd ? '/cuahang/' : '/',
     plugins: [react(), tailwindcss()],
     resolve: {
       alias: {
