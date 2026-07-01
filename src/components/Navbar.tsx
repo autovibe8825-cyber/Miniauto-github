@@ -22,6 +22,8 @@ interface NavbarProps {
   products?: Product[];
   onOpenCustomerAuth?: () => void;
   onLogoutCustomer?: () => void;
+  maxPriceFilter: number;
+  onMaxPriceChange: (value: number) => void;
 }
 
 export default function Navbar({
@@ -43,7 +45,9 @@ export default function Navbar({
   adminNotificationsCount = 0,
   products = [],
   onOpenCustomerAuth,
-  onLogoutCustomer
+  onLogoutCustomer,
+  maxPriceFilter,
+  onMaxPriceChange
 }: NavbarProps) {
   const defaultCategories = [
     { value: 'all', label: 'Tất cả' },
@@ -74,6 +78,8 @@ export default function Navbar({
     { value: '1:32', label: 'Tỷ lệ 1:32' },
     { value: '1:64', label: 'Tỷ lệ 1:64' }
   ];
+
+  const highestPrice = products.length > 0 ? Math.max(...products.map(p => p.price)) : 5000000;
 
   return (
     <header className="sticky top-0 z-40 py-1.5 sm:py-3 px-1.5 sm:px-4 bg-transparent">
@@ -312,6 +318,64 @@ export default function Navbar({
                     </button>
                   ))}
                 </div>
+              </div>
+            </div>
+
+            {/* Price Filter Slider Row (Custom Emerald styling) */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 w-full border-t border-zinc-100 pt-2.5" id="price-slider-row">
+              <div className="flex items-center gap-2 shrink-0">
+                <div className="flex items-center gap-1 text-zinc-550 text-[10px] sm:text-xs font-black uppercase tracking-wider">
+                  <Wallet className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                  <span>Ngân sách tối đa:</span>
+                </div>
+                <span className="bg-emerald-50 text-emerald-700 border border-emerald-100 px-2.5 py-0.5 rounded-full text-[11px] sm:text-xs font-black font-mono">
+                  {maxPriceFilter >= highestPrice ? 'Tất cả mức giá' : `${maxPriceFilter.toLocaleString('vi-VN')} đ`}
+                </span>
+              </div>
+
+              <div className="flex-1 max-w-md flex items-center gap-2 px-1">
+                <span className="text-[9px] text-zinc-400 font-bold font-mono">100k</span>
+                <input
+                  type="range"
+                  min="100000"
+                  max={highestPrice}
+                  step="50000"
+                  value={maxPriceFilter}
+                  onChange={(e) => onMaxPriceChange(Number(e.target.value))}
+                  className="flex-1 h-1.5 bg-zinc-100 rounded-lg appearance-none cursor-pointer accent-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-400"
+                  style={{
+                    accentColor: '#10b981'
+                  }}
+                />
+                <span className="text-[9px] text-zinc-400 font-bold font-mono">
+                  {highestPrice >= 1000000 ? `${(highestPrice / 1000000).toFixed(1)}M` : `${highestPrice.toLocaleString('vi-VN')}đ`}
+                </span>
+              </div>
+
+              {/* Quick price presets */}
+              <div className="flex items-center gap-1 overflow-x-auto pb-0.5 scrollbar-none flex-nowrap sm:ml-auto">
+                {[
+                  { label: 'Tất cả', value: highestPrice },
+                  { label: 'Dưới 500k', value: 500000 },
+                  { label: 'Dưới 1.5M', value: 1500000 },
+                  { label: 'Dưới 3M', value: 3000000 }
+                ].map((preset) => {
+                  const isSelected = maxPriceFilter === preset.value || (preset.label === 'Tất cả' && maxPriceFilter >= highestPrice);
+                  return (
+                    <button
+                      key={preset.label}
+                      type="button"
+                      onClick={() => onMaxPriceChange(preset.value)}
+                      className={`px-2.5 py-1 rounded-xl text-[10px] sm:text-xs font-extrabold whitespace-nowrap transition-all cursor-pointer select-none active:scale-95 ${
+                        isSelected
+                          ? 'bg-emerald-500 text-white font-black shadow-sm'
+                          : 'bg-zinc-50 hover:bg-zinc-100 text-zinc-600 border border-zinc-200/60'
+                      }`}
+                    >
+                      {preset.label}
+                    </button>
+                  );
+                })}
               </div>
             </div>
 

@@ -428,6 +428,15 @@ export default function App() {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [showCart, setShowCart] = useState(false);
   const [showCheckout, setShowCheckout] = useState(false);
+  const [maxPriceFilter, setMaxPriceFilter] = useState<number>(15000000);
+
+  // Sync price slider default max with products load
+  useEffect(() => {
+    if (products.length > 0) {
+      const highestPrice = Math.max(...products.map(p => p.price));
+      setMaxPriceFilter(highestPrice);
+    }
+  }, [products]);
 
   // Real-time URL Routing Engine for deep-linking & syncing address bar path
   const [pendingCategorySlug, setPendingCategorySlug] = useState<string | null>(null);
@@ -1536,7 +1545,12 @@ export default function App() {
     const matchesScale = selectedScale === 'all' || p.scale === selectedScale;
     const matchesWishlist = !showOnlyWishlist || wishlist.includes(p.id);
 
-    return matchesSearch && matchesCategory && matchesScale && matchesWishlist;
+    const finalPrice = p.discountPercentage && p.discountPercentage > 0
+      ? Math.round(p.price * (1 - p.discountPercentage / 100))
+      : p.price;
+    const matchesPrice = finalPrice <= maxPriceFilter;
+
+    return matchesSearch && matchesCategory && matchesScale && matchesWishlist && matchesPrice;
   });
 
   return (
@@ -1574,6 +1588,8 @@ export default function App() {
         products={products}
         onOpenCustomerAuth={() => setShowCustomerAuthModal(true)}
         onLogoutCustomer={handleLogoutCustomer}
+        maxPriceFilter={maxPriceFilter}
+        onMaxPriceChange={setMaxPriceFilter}
       />
 
       {/* Beautified Site-wide Running Marquee Banner - placed below categories/scale selectors */}

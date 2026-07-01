@@ -281,12 +281,18 @@ async function startServer() {
   app.use(express.json({ limit: "50mb" }));
   app.use(express.urlencoded({ limit: "50mb", extended: true }));
 
+  // Redirect root URL to /cuahang/ for routing consistency
+  app.get("/", (req, res) => {
+    res.redirect("/cuahang/");
+  });
+
   // Ensure uploads directory exists and is served statically
   const uploadsDir = path.join(process.cwd(), "uploads");
   if (!fs.existsSync(uploadsDir)) {
     fs.mkdirSync(uploadsDir, { recursive: true });
   }
   app.use("/uploads", express.static(uploadsDir));
+  app.use("/cuahang/uploads", express.static(uploadsDir));
 
   // REAL-TIME NOTIFICATIONS VIA SERVER-SENT EVENTS (SSE)
   interface SseClient {
@@ -982,6 +988,8 @@ async function startServer() {
     app.use(vite.middlewares);
   } else {
     const distPath = path.join(process.cwd(), 'dist');
+    // Serve static files with and without the /cuahang prefix to support subpath proxy routing
+    app.use('/cuahang', express.static(distPath));
     app.use(express.static(distPath));
     app.get('*', (req, res) => {
       res.sendFile(path.join(distPath, 'index.html'));
